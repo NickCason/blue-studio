@@ -67,107 +67,147 @@ try {
     rafId: number;
     needsReset: boolean;
     hasEverPlayed: boolean;
+    faultTimeoutId: number;
   };
 
-  const players: PlayerState[] = [];
+  let players: PlayerState[] = [];
+  let lifecycleBound = false;
 
-  for (const player of document.querySelectorAll<HTMLDivElement>('.player')) {
-    const src = (player as HTMLElement).dataset.audioSrc!;
-    const audio = new Audio(src);
-    audio.preload = 'metadata';
-    const playBtn = player.querySelector<HTMLButtonElement>('.play')!;
-    const playIcon = playBtn.querySelector('i')!;
-    const waveform = player.querySelector<HTMLDivElement>('.waveform')!;
-    const bars = Array.from(player.querySelectorAll<HTMLDivElement>('.bar'));
-    const state: PlayerState = {
-      audio, playBtn, playIcon, bars, waveform,
-      rafId: 0, needsReset: false, hasEverPlayed: false,
-    };
-    players.push(state);
+  function initPlayers() {
+    for (const player of document.querySelectorAll<HTMLDivElement>('.player')) {
+      if ((player as HTMLElement).dataset.smAudioBound === '1') continue;
+      const src = (player as HTMLElement).dataset.audioSrc!;
+      const audio = new Audio(src);
+      audio.preload = 'metadata';
+      const playBtn = player.querySelector<HTMLButtonElement>('.play')!;
+      const playIcon = playBtn.querySelector('i')!;
+      const waveform = player.querySelector<HTMLDivElement>('.waveform')!;
+      const bars = Array.from(player.querySelectorAll<HTMLDivElement>('.bar'));
+      const state: PlayerState = {
+        audio, playBtn, playIcon, bars, waveform,
+        rafId: 0, needsReset: false, hasEverPlayed: false, faultTimeoutId: 0,
+      };
+      players.push(state);
 
-    function paintProgress() {
-      if (!audio.duration || isNaN(audio.duration)) return;
-      const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
-      const playedCount = Math.floor(ratio * bars.length);
-      bars.forEach((b, i) => b.classList.toggle('played', i < playedCount));
-    }
-    function tick() {
-      paintProgress();
-      state.rafId = requestAnimationFrame(tick);
-    }
-    function startTick() {
-      cancelAnimationFrame(state.rafId);
-      state.rafId = requestAnimationFrame(tick);
-    }
-    function stopTick() {
-      cancelAnimationFrame(state.rafId);
-      state.rafId = 0;
-    }
-    function flashFault() {
-      playBtn.classList.remove('fault');
-      // force reflow so the animation restarts on rapid repeat
-      void playBtn.offsetWidth;
-      playBtn.classList.add('fault');
-      window.setTimeout(() => playBtn.classList.remove('fault'), 600);
-    }
-
-    audio.addEventListener('play',  () => {
-      state.hasEverPlayed = true;
-      state.needsReset = false;
-      playIcon.className = 'ph-fill ph-pause';
-      startTick();
-    });
-    audio.addEventListener('pause', () => { playIcon.className = 'ph-fill ph-play'; stopTick(); });
-    audio.addEventListener('ended', () => {
-      playIcon.className = 'ph-fill ph-play';
-      stopTick();
-      bars.forEach((b) => b.classList.remove('played'));
-      audio.currentTime = 0;
-    });
-    audio.addEventListener('error',   () => { state.needsReset = true; });
-    audio.addEventListener('stalled', () => { state.needsReset = true; });
-    audio.addEventListener('abort',   () => { state.needsReset = true; });
-    audio.addEventListener('timeupdate',     paintProgress);
-    audio.addEventListener('seeked',         paintProgress);
-    audio.addEventListener('loadedmetadata', paintProgress);
-
-    playBtn.addEventListener('click', async () => {
-      if (!audio.paused) { audio.pause(); return; }
-      try {
-        if (isStale(audio, state.needsReset)) {
-          audio.load();           // resets internal state machine
-          state.needsReset = false;
-        }
-        await audio.play();
-      } catch {
-        state.needsReset = true;  // next click will reload
-        playIcon.className = 'ph-fill ph-play';
-        flashFault();
+      function paintProgress() {
+        if (!audio.duration || isNaN(audio.duration)) return;
+        const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
+        const playedCount = Math.floor(ratio * bars.length);
+        bars.forEach((b, i) => b.classList.toggle('played', i < playedCount));
       }
-    });
+      function tick() {
+        paintProgress();
+        state.rafId = requestAnimationFrame(tick);
+      }
+      function startTick() {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = requestAnimationFrame(tick);
+      }
+      function stopTick() {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = 0;
+      }
+      function flashFault() {
+        playBtn.classList.remove('fault');
+        // force reflow so the animation restarts on rapid repeat
+        void playBtn.offsetWidth;
+        playBtn.classList.add('fault');
+        if (state.faultTimeoutId) window.clearTimeout(state.faultTimeoutId);
+        state.faultTimeoutId = window.setTimeout(() => {
+          playBtn.classList.remove('fault');
+          state.faultTimeoutId = 0;
+        }, 600);
+      }
 
-    waveform.addEventListener('click', (e) => {
-      if (!audio.duration || isNaN(audio.duration)) return;
-      const rect = waveform.getBoundingClientRect();
-      const ratio = Math.min(1, Math.max(0, ((e as MouseEvent).clientX - rect.left) / rect.width));
-      audio.currentTime = ratio * audio.duration;
-      paintProgress();
-    });
+      audio.addEventListener('play',  () => {
+        state.hasEverPlayed = true;
+        state.needsReset = false;
+        playIcon.className = 'ph-fill ph-pause';
+        startTick();
+      });
+      audio.addEventListener('pause', () => { playIcon.className = 'ph-fill ph-play'; stopTick(); });
+      audio.addEventListener('ended', () => {
+        playIcon.className = 'ph-fill ph-play';
+        stopTick();
+        bars.forEach((b) => b.classList.remove('played'));
+        audio.currentTime = 0;
+      });
+      audio.addEventListener('error',   () => { state.needsReset = true; });
+      audio.addEventListener('stalled', () => {
+        if (audio.paused) state.needsReset = true;
+      });
+      audio.addEventListener('abort',   () => { state.needsReset = true; });
+      audio.addEventListener('timeupdate',     paintProgress);
+      audio.addEventListener('seeked',         paintProgress);
+      audio.addEventListener('loadedmetadata', paintProgress);
+
+      playBtn.addEventListener('click', async () => {
+        if (!audio.paused) { audio.pause(); return; }
+        try {
+          if (isStale(audio, state.needsReset)) {
+            audio.load();           // resets internal state machine
+            state.needsReset = false;
+          }
+          await audio.play();
+        } catch {
+          state.needsReset = true;  // next click will reload
+          playIcon.className = 'ph-fill ph-play';
+          flashFault();
+        }
+      });
+
+      waveform.addEventListener('click', (e) => {
+        if (!audio.duration || isNaN(audio.duration)) return;
+        const rect = waveform.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, ((e as MouseEvent).clientX - rect.left) / rect.width));
+        audio.currentTime = ratio * audio.duration;
+        paintProgress();
+      });
+
+      (player as HTMLElement).dataset.smAudioBound = '1';
+    }
+
+    // After backgrounding / device sleep / bfcache restore, mark every player
+    // that has played at least once and is currently paused as needing a reset
+    // before the NEXT play attempt. We don't reset eagerly — we reset lazily on
+    // the next click so we don't fight a player the user is currently using.
+    if (!lifecycleBound) {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') flagAllForReset();
+      });
+      window.addEventListener('pageshow', flagAllForReset);
+      lifecycleBound = true;
+    }
   }
 
-  // After backgrounding / device sleep / bfcache restore, mark every player
-  // that has played at least once and is currently paused as needing a reset
-  // before the NEXT play attempt. We don't reset eagerly — we reset lazily on
-  // the next click so we don't fight a player the user is currently using.
   function flagAllForReset() {
     for (const p of players) {
       if (p.hasEverPlayed && p.audio.paused) p.needsReset = true;
     }
   }
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') flagAllForReset();
+
+  // Tear down players before ClientRouter swaps the DOM. Without this, audio
+  // would keep playing across navigations and the abandoned <audio> elements
+  // would hold network/decoder resources.
+  document.addEventListener('astro:before-swap', () => {
+    for (const p of players) {
+      try { p.audio.pause(); } catch { /* noop */ }
+      cancelAnimationFrame(p.rafId);
+      p.rafId = 0;
+      if (p.faultTimeoutId) {
+        window.clearTimeout(p.faultTimeoutId);
+        p.faultTimeoutId = 0;
+      }
+      try {
+        p.audio.src = '';
+        p.audio.load();
+      } catch { /* noop */ }
+    }
+    players.length = 0;
   });
-  window.addEventListener('pageshow', flagAllForReset);
+
+  initPlayers();
+  document.addEventListener('astro:page-load', initPlayers);
 </script>
 
 <style>
