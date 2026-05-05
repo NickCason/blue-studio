@@ -9,14 +9,25 @@ const { post } = Astro.props;
 if (post.data.type !== 'photo') throw new Error('PhotoCard requires photo post');
 ---
 <article class="photo-card">
-  <a href={`/journal/${post.slug}/`}>
-    <img src={post.data.image} alt={post.data.caption ?? ''} class="img" loading="lazy" />
-  </a>
+  <img
+    src={post.data.image}
+    alt={post.data.caption ?? ''}
+    class="img"
+    loading="lazy"
+    data-photo-lightbox
+    data-lightbox-caption={post.data.caption ?? ''}
+  />
   <MetaRow items={['Photo', formatDate(post.data.publishedAt)]} />
   <TagList tags={post.data.tags} />
-  {post.data.caption && <p class="cap serif-italic">— {post.data.caption}</p>}
+  {post.data.caption && (
+    <a href={`/journal/${post.slug}/`} class="cap-link">
+      <p class="cap serif-italic">— {post.data.caption}</p>
+    </a>
+  )}
 </article>
 <style>
   .img { width: 100%; height: auto; border-radius: var(--r-lg); box-shadow: var(--shadow-card); margin-bottom: 14px; }
   .cap { font-size: 15px; opacity: 0.9; margin: 0; }
+  .cap-link { color: var(--fg); }
+  .cap-link:hover .cap { color: var(--accent-text); }
 </style>

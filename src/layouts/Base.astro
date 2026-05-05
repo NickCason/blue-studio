@@ -7,6 +7,7 @@ import Nav from '~/components/layout/Nav.astro';
 import Footer from '~/components/layout/Footer.astro';
 import Sparkles from '~/components/atmosphere/Sparkles.astro';
 import GlowStage from '~/components/atmosphere/GlowStage.astro';
+import PhotoLightbox from '~/components/PhotoLightbox.astro';
 import { ClientRouter } from 'astro:transitions';
 
 interface Props {
@@ -78,6 +79,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://studio-marg
       </main>
       <Footer />
     </GlowStage>
+    <PhotoLightbox />
     <style is:global>
       .page { min-height: 100vh; }
       main { position: relative; z-index: 2; }

@@ -7,7 +7,13 @@ const { post } = Astro.props;
 if (post.data.type !== 'photo') throw new Error();
 ---
 <article class="permalink photo-perma">
-  <img src={post.data.image} alt={post.data.caption ?? ''} class="img" />
+  <img
+    src={post.data.image}
+    alt={post.data.caption ?? ''}
+    class="img"
+    data-photo-lightbox
+    data-lightbox-caption={post.data.caption ?? ''}
+  />
   {post.data.caption && <p class="cap serif-italic">— {post.data.caption}</p>}
   <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
   <TagList tags={post.data.tags} />

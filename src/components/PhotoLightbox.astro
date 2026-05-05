@@ -1,0 +1,163 @@
+---
+// Fullscreen photo overlay. Triggered by any <img data-photo-lightbox>.
+// Lifecycle: rebinds on astro:page-load, tears down on astro:before-swap.
+---
+<div id="sm-lightbox" class="sm-lightbox" aria-hidden="true" role="dialog" aria-label="Photo viewer">
+  <button class="lb-close" aria-label="Close">✕</button>
+  <button class="lb-nav lb-prev" aria-label="Previous photo">‹</button>
+  <button class="lb-nav lb-next" aria-label="Next photo">›</button>
+  <figure class="lb-figure">
+    <img class="lb-img" alt="" />
+    <figcaption class="lb-caption"></figcaption>
+  </figure>
+</div>
+
+<script>
+  let lifecycleBound = false;
+  let lastTrigger: HTMLElement | null = null;
+  let imgs: HTMLImageElement[] = [];
+  let activeIdx = -1;
+
+  function getEls() {
+    return {
+      box: document.getElementById('sm-lightbox') as HTMLDivElement | null,
+      lbImg: document.querySelector<HTMLImageElement>('#sm-lightbox .lb-img'),
+      lbCap: document.querySelector<HTMLElement>('#sm-lightbox .lb-caption'),
+      btnClose: document.querySelector<HTMLButtonElement>('#sm-lightbox .lb-close'),
+      btnPrev: document.querySelector<HTMLButtonElement>('#sm-lightbox .lb-prev'),
+      btnNext: document.querySelector<HTMLButtonElement>('#sm-lightbox .lb-next'),
+    };
+  }
+
+  function open(idx: number) {
+    const { box, lbImg, lbCap, btnPrev, btnNext } = getEls();
+    if (!box || !lbImg || !lbCap) return;
+    activeIdx = idx;
+    const src = imgs[idx];
+    lbImg.src = src.currentSrc || src.src;
+    lbImg.alt = src.alt || '';
+    lbCap.textContent = src.dataset.lightboxCaption || src.alt || '';
+    box.classList.add('open');
+    box.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    if (btnPrev) btnPrev.style.visibility = imgs.length > 1 ? 'visible' : 'hidden';
+    if (btnNext) btnNext.style.visibility = imgs.length > 1 ? 'visible' : 'hidden';
+  }
+  function close() {
+    const { box } = getEls();
+    if (!box) return;
+    box.classList.remove('open');
+    box.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (lastTrigger) lastTrigger.focus();
+    activeIdx = -1;
+  }
+  function step(delta: number) {
+    if (imgs.length === 0 || activeIdx < 0) return;
+    const next = (activeIdx + delta + imgs.length) % imgs.length;
+    open(next);
+  }
+
+  function rescan() {
+    imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[data-photo-lightbox]'));
+  }
+
+  function onImgClick(e: Event) {
+    const t = e.currentTarget as HTMLImageElement;
+    e.preventDefault();
+    lastTrigger = t;
+    rescan();
+    const idx = imgs.indexOf(t);
+    if (idx >= 0) open(idx);
+  }
+
+  function bindImages() {
+    rescan();
+    for (const img of imgs) {
+      if ((img as HTMLElement).dataset.smLightboxBound === '1') continue;
+      (img as HTMLElement).dataset.smLightboxBound = '1';
+      img.style.cursor = 'zoom-in';
+      img.addEventListener('click', onImgClick);
+    }
+  }
+
+  function bindLifecycleOnce() {
+    if (lifecycleBound) return;
+    lifecycleBound = true;
+
+    const { btnClose, btnPrev, btnNext, box } = getEls();
+    btnClose?.addEventListener('click', close);
+    btnPrev?.addEventListener('click', () => step(-1));
+    btnNext?.addEventListener('click', () => step(1));
+    box?.addEventListener('click', (e) => { if (e.target === box) close(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('sm-lightbox')?.classList.contains('open')) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') step(-1);
+      else if (e.key === 'ArrowRight') step(1);
+    });
+
+    let touchX = 0;
+    document.addEventListener('touchstart', (e) => {
+      if (!document.getElementById('sm-lightbox')?.classList.contains('open')) return;
+      touchX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (!document.getElementById('sm-lightbox')?.classList.contains('open')) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    });
+  }
+
+  function init() {
+    bindLifecycleOnce();
+    bindImages();
+  }
+
+  function teardown() {
+    for (const img of imgs) {
+      img.removeEventListener('click', onImgClick);
+      delete (img as HTMLElement).dataset.smLightboxBound;
+    }
+    imgs = [];
+    activeIdx = -1;
+    if (document.getElementById('sm-lightbox')?.classList.contains('open')) close();
+  }
+
+  init();
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>
+
+<style>
+  .sm-lightbox {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0, 0, 0, 0.88);
+    display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 250ms var(--ease, ease);
+  }
+  .sm-lightbox.open { display: flex; opacity: 1; }
+  .lb-figure { margin: 0; max-width: 92vw; max-height: 88vh; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .lb-img { max-width: 92vw; max-height: 80vh; object-fit: contain; box-shadow: 0 24px 60px rgba(0,0,0,0.6); border-radius: var(--r-md, 8px); }
+  .lb-caption { color: rgba(255,255,255,0.86); font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-size: 15px; max-width: 60ch; text-align: center; }
+  .lb-close, .lb-nav {
+    position: absolute; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.86); width: 44px; height: 44px; border-radius: 50%;
+    cursor: pointer; font-size: 20px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 200ms var(--ease, ease);
+  }
+  .lb-close:hover, .lb-nav:hover { background: rgba(255,255,255,0.16); }
+  .lb-close { top: 22px; right: 22px; }
+  .lb-prev { left: 22px; top: 50%; transform: translateY(-50%); }
+  .lb-next { right: 22px; top: 50%; transform: translateY(-50%); }
+  @media (max-width: 640px) {
+    .lb-close { top: 14px; right: 14px; }
+    .lb-prev { left: 10px; }
+    .lb-next { right: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sm-lightbox { transition: none; }
+  }
+</style>
