@@ -82,7 +82,7 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
       </main>
       <Footer />
     </GlowStage>
-    <PhotoLightbox />
+    <PhotoLightbox transition:persist />
     <style is:global>
       .page { min-height: 100vh; }
       main { position: relative; z-index: 2; }

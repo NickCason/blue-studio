@@ -60,8 +60,8 @@ export function ogJsx({ title, type, year }: OgPayload) {
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
               color: '#B8A4D6',
-              fontFamily: 'Inter',
-              fontStyle: 'normal',
+              fontFamily: 'Fraunces',
+              fontStyle: 'italic',
             },
             children: [
               { type: 'span', props: { children: String(type) } },

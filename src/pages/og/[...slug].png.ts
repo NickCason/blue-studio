@@ -47,7 +47,6 @@ export const GET: APIRoute = async ({ props }) => {
     height: 630,
     fonts: [
       { name: 'Fraunces', data: fontData, weight: 400, style: 'italic' },
-      { name: 'Inter',    data: fontData, weight: 400, style: 'normal' },
     ],
   });
 

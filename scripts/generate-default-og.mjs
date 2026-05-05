@@ -21,7 +21,7 @@ const layout = {
         ] } },
       { type: 'div', props: { style: { fontSize: '88px', lineHeight: 1.1, maxWidth: '1040px', display: 'flex' },
         children: 'A reading room, kept lit.' } },
-      { type: 'div', props: { style: { fontSize: '20px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#B8A4D6', fontFamily: 'Inter', fontStyle: 'normal', display: 'flex' },
+      { type: 'div', props: { style: { fontSize: '20px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#B8A4D6', fontFamily: 'Fraunces', fontStyle: 'italic', display: 'flex' },
         children: 'studio marginalia · 2026' } },
     ],
   },
@@ -33,7 +33,6 @@ const svg = await satori(layout, {
   width: 1200, height: 630,
   fonts: [
     { name: 'Fraunces', data: fontData, weight: 400, style: 'italic' },
-    { name: 'Inter',    data: fontData, weight: 400, style: 'normal' },
   ],
 });
 const png = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng();
