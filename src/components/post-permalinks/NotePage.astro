@@ -7,19 +7,22 @@ if (post.data.type !== 'note') throw new Error();
 const { Content } = await post.render();
 ---
 <article class="permalink note-perma">
+  <hr class="rule" aria-hidden="true" />
   <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
   <blockquote class="body serif-italic"><Content /></blockquote>
+  <hr class="rule" aria-hidden="true" />
 </article>
 <style>
-  .permalink { padding: 80px 0; max-width: 60ch; margin: 0 auto; text-align: center; }
-  .date { margin-bottom: 28px; }
+  .permalink { padding: 64px 0 80px; max-width: 60ch; margin: 0 auto; text-align: center; }
+  .rule { border: none; border-top: 1px dotted var(--rule-dotted); margin: 0; }
+  .date { margin: 24px 0 28px; }
   .body {
     font-size: clamp(1.5rem, 3vw, 2.25rem);
     line-height: 1.5;
     color: var(--fg);
     border-left: none;
     padding: 0;
-    margin: 0;
+    margin: 0 0 28px;
     font-variation-settings: 'SOFT' 100, 'opsz' 144;
     font-weight: 300;
   }

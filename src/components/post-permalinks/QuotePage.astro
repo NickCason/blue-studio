@@ -7,28 +7,31 @@ if (post.data.type !== 'quote') throw new Error();
 const { Content } = await post.render();
 ---
 <article class="permalink quote-perma">
-  <div class="frame">
-    <span class="orn">✦</span>
-    <p class="body serif-italic"><Content /></p>
-    <span class="orn">✦</span>
+  <div class="orn" aria-hidden="true">❝</div>
+  <blockquote class="body serif-italic"><Content /></blockquote>
+  <div class="attribution">
+    — {post.data.sourceUrl
+      ? <a href={post.data.sourceUrl} target="_blank" rel="noopener" class="src serif-italic">{post.data.source}</a>
+      : <span class="src serif-italic">{post.data.source}</span>}
+    <span class="date">· {formatDate(post.data.publishedAt)}</span>
   </div>
-  <div class="attr eyebrow">— {post.data.source}{post.data.sourceUrl ? <a href={post.data.sourceUrl}> ↗</a> : null}</div>
-  <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
 </article>
 <style>
-  .permalink { padding: 100px 0; text-align: center; max-width: 40ch; margin: 0 auto; }
-  .frame { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 28px; }
+  .permalink { padding: 80px 0 96px; max-width: 60ch; margin: 0 auto; text-align: center; }
+  .orn { font-size: 56px; color: var(--accent-text); line-height: 1; margin-bottom: 16px; opacity: 0.85; font-family: 'Fraunces Variable', Georgia, serif; }
   .body {
-    font-size: clamp(1.75rem, 4vw, 3rem);
-    line-height: 1.3;
-    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.5;
+    color: var(--fg);
+    border-left: none;
+    padding: 0;
+    margin: 0 0 28px;
+    font-variation-settings: 'SOFT' 80, 'opsz' 144;
     font-weight: 300;
-    font-variation-settings: 'SOFT' 100, 'opsz' 144;
-    text-shadow: 0 2px 28px rgba(110,90,138,0.5);
   }
-  :root[data-theme='light'] .body { text-shadow: none; }
-  .orn { color: var(--accent); opacity: 0.7; font-size: 22px; }
-  .body :global(p) { margin: 0; }
-  .attr { margin-bottom: 12px; }
-  .attr a { margin-left: 4px; }
+  .body :global(p) { margin: 0 0 1em; }
+  .attribution { font-size: 14px; color: var(--fg-soft); }
+  .src { color: var(--fg-soft); border-bottom: 1px dotted var(--accent-text); }
+  .src:hover { color: var(--accent-text); }
+  .date { font-size: 11px; letter-spacing: var(--tracking-meta); text-transform: uppercase; color: var(--accent-text); opacity: 0.7; margin-left: 8px; }
 </style>

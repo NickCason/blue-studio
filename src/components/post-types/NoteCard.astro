@@ -1,6 +1,5 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import MetaRow from '~/components/ui/MetaRow.astro';
 import { formatRelative } from '~/lib/formatDate';
 
 interface Props { post: CollectionEntry<'posts'>; }
@@ -9,22 +8,28 @@ if (post.data.type !== 'note') throw new Error('NoteCard requires note post');
 const { Content } = await post.render();
 ---
 <article class="note-card">
-  <MetaRow items={['Note', formatRelative(post.data.publishedAt)]} />
-  <a href={`/journal/${post.slug}/`} class="body-link">
-    <blockquote class="note-body serif-italic"><Content /></blockquote>
+  <hr class="rule top" aria-hidden="true" />
+  <div class="date">{formatRelative(post.data.publishedAt)}</div>
+  <a href={`/journal/${post.slug}/`} class="link">
+    <blockquote class="body serif-italic"><Content /></blockquote>
   </a>
+  <hr class="rule bottom" aria-hidden="true" />
 </article>
+
 <style>
-  .body-link { color: var(--fg); }
-  .note-body {
-    font-size: 19px;
-    line-height: 1.55;
+  .note-card { padding: 24px 0; text-align: center; }
+  .rule { border: none; border-top: 1px dotted var(--rule-dotted); margin: 0; }
+  .date { font-size: var(--fs-meta); letter-spacing: var(--tracking-meta); text-transform: uppercase; color: var(--accent-text); margin: 16px 0 18px; }
+  .link { color: var(--fg); }
+  .body {
+    font-size: clamp(1.0625rem, 2.5vw, 1.25rem);
+    line-height: 1.5;
     color: var(--fg);
-    border-left: 2px solid var(--accent);
-    padding: 4px 0 4px 22px;
-    max-width: 60ch;
-    margin: 0;
-    font-variation-settings: 'SOFT' 60, 'opsz' 24;
+    border-left: none;
+    padding: 0 16px;
+    margin: 0 0 18px;
+    font-variation-settings: 'SOFT' 100, 'opsz' 144;
+    font-weight: 300;
   }
-  .note-body :global(p) { margin: 0; }
+  .body :global(p) { margin: 0; }
 </style>
