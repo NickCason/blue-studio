@@ -134,9 +134,29 @@ const cases = allCases
 
   .selected-work { padding: 64px 56px; border-top: 1px dashed var(--border-dashed); }
   .selected-work .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; margin: 0 auto 28px; }
-  .tile { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-soft); background: rgba(15,15,20,0.5); }
+  .tile { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-soft); background: rgba(15,15,20,0.5); transition: transform 500ms var(--ease), box-shadow 500ms var(--ease), border-color 500ms var(--ease); position: relative; }
   :root[data-theme='light'] .tile { background: rgba(232,228,223,0.5); }
-  .tile-img { height: 140px; }
+  .tile-img { height: 140px; transition: transform 600ms var(--ease); transform-origin: center; }
+  a.tile { color: inherit; }
+  a.tile::after {
+    content: '→';
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    font-size: 12px;
+    color: var(--accent-text);
+    opacity: 0.4;
+    transition: opacity 300ms var(--ease), transform 300ms var(--ease);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a.tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px -10px rgba(110, 90, 138, 0.4);
+      border-color: var(--accent);
+    }
+    a.tile:hover .tile-img { transform: scale(1.04); }
+    a.tile:hover::after { opacity: 1; transform: translateX(3px); }
+  }
   .tile-meta { padding: 12px 14px 14px; }
   .tile-year { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 4px; }
   .tile-name { font-size: 16px; line-height: 1.25; color: var(--fg); }
