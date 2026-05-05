@@ -1,24 +1,29 @@
 ---
+import { getEntry } from 'astro:content';
 import Base from '~/layouts/Base.astro';
+
+const entry = await getEntry('pages', 'about');
+if (!entry) throw new Error('Missing src/content/pages/about.md');
+const { Content } = await entry.render();
+const { title, dek } = entry.data;
 ---
-<Base title="About — Studio Marginalia">
+<Base title={`${title} — Studio Marginalia`}>
   <section class="page">
-    <h1 class="hed serif-italic">A few things to know.</h1>
+    <h1 class="hed serif-italic">{title}</h1>
+    {dek && <p class="dek serif-italic">{dek}</p>}
     <div class="prose serif">
-      <p>I'm Nina Pfeiffer. <em>Studio Marginalia</em> is the name I write under and the name I work under — two halves of the same project, kept under one roof on purpose.</p>
-      <p>This site is mostly a journal. Some weeks it's a paragraph; some months it's a 2,000-word essay. There's also a small library of <a href="/work/portfolio/">selected work</a> from the marketing side of the studio, and a <a href="/work/">page about working together</a> if you came here looking for that.</p>
-      <p>I write quietly. The brief is "lived-in, not influencer-perfect." If you've found this and stuck around, I'm probably writing for you.</p>
-      <p class="sig serif-italic">— Nina</p>
+      <Content />
     </div>
   </section>
 </Base>
 <style>
   .page { padding: 64px 56px 96px; max-width: 64ch; margin: 0 auto; }
   .hed { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin: 0 0 32px; font-weight: 400; }
+  .dek { font-size: 1.125rem; color: var(--fg-soft); margin: -16px 0 32px; line-height: 1.5; }
   .prose { font-size: 18px; line-height: 1.75; }
-  .prose p { margin: 0 0 1.2em; }
-  .prose em { color: var(--accent); }
-  .prose a { color: var(--accent); border-bottom: 1px dotted var(--accent); }
-  .sig { color: var(--accent); font-size: 22px; margin-top: 1em; }
+  .prose :global(p) { margin: 0 0 1.2em; }
+  .prose :global(em) { color: var(--accent); }
+  .prose :global(a) { color: var(--accent); border-bottom: 1px dotted var(--accent); }
+  .prose :global(p:last-child) { color: var(--accent); font-size: 22px; margin-top: 1em; }
   @media (max-width: 640px) { .page { padding: 40px 20px 64px; } }
 </style>

@@ -106,4 +106,12 @@ const site = defineCollection({
   }),
 });
 
-export const collections = { posts, portfolio, now, noticing, site };
+const pages = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    dek: z.string().optional(),
+  }),
+});
+
+export const collections = { posts, portfolio, now, noticing, site, pages };

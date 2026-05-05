@@ -369,6 +369,19 @@ export default defineConfig({
           { type: 'string', name: 'tagline', label: 'Tagline (optional)' },
         ],
       },
+
+      {
+        name: 'pages',
+        label: 'Static pages',
+        path: 'src/content/pages',
+        format: 'md',
+        ui: { allowedActions: { create: false, delete: false } },
+        fields: [
+          { type: 'string', name: 'title', label: 'Page title', required: true },
+          { type: 'string', name: 'dek', label: 'Subtitle (optional)' },
+          { type: 'rich-text', name: 'body', label: 'Body', isBody: true },
+        ],
+      },
     ],
   },
 });
