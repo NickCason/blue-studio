@@ -1,7 +1,7 @@
-// waveform.mjs — Astro integration: decode audio assets in public/audio/,
-// emit sibling .waveform.json next to each .mp3.
-// Audio assets live in public/audio/ (NOT under src/content/) so they're
-// served directly + Tina Cloud's content indexer doesn't try to ingest binaries.
+// waveform.mjs — Astro integration: decode audio assets, emit sibling
+// .waveform.json next to each. Scans both public/audio/ (legacy) and
+// public/media/ (Tina-uploaded). Audio lives outside src/content so Tina
+// Cloud's content indexer doesn't try to ingest binaries.
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -51,12 +51,15 @@ async function walk(dir) {
 }
 
 export default function waveformIntegration() {
-  const audioRoot = () => path.resolve('public/audio');
+  const roots = () => [
+    path.resolve('public/audio'),
+    path.resolve('public/media'),
+  ];
   const run = async (logger, label) => {
-    const files = await walk(audioRoot());
-    if (!files.length) { logger.info(`${label}: no audio assets in public/audio`); return; }
-    logger.info(`${label}: processing ${files.length} audio file(s)`);
-    await Promise.all(files.map(processAudioFile));
+    const all = (await Promise.all(roots().map(walk))).flat();
+    if (!all.length) { logger.info(`${label}: no audio assets in public/audio or public/media`); return; }
+    logger.info(`${label}: processing ${all.length} audio file(s)`);
+    await Promise.all(all.map(processAudioFile));
   };
   return {
     name: 'studio-marginalia:waveform',

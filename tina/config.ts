@@ -19,7 +19,7 @@ export default defineConfig({
   },
   media: {
     tina: {
-      mediaRoot: 'images',
+      mediaRoot: 'media',
       publicFolder: 'public',
     },
   },
@@ -226,8 +226,9 @@ export default defineConfig({
           { type: 'image', name: 'image', label: 'Image (photo)' },
           { type: 'string', name: 'caption', label: 'Caption (photo)', ui: { component: 'textarea' } },
 
-          // -- Audio --
-          { type: 'string', name: 'audioFile', label: 'Audio file path (voice memo, e.g. my-slug/audio.mp3)' },
+          // -- Audio (uploads via Tina media picker; on iPhone this opens the
+          // native voice recorder via the input's capture attribute) --
+          { type: 'image', name: 'audioFile', label: 'Voice memo (record on phone, or upload mp3/m4a)' },
           { type: 'string', name: 'duration', label: 'Duration mm:ss (voice memo)' },
           { type: 'string', name: 'context', label: 'Context line (voice memo, e.g. "in the car")' },
           { type: 'string', name: 'transcript', label: 'Transcript (voice memo)', ui: { component: 'textarea' } },
