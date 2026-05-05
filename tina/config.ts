@@ -38,7 +38,7 @@ export default defineConfig({
 
     function ensureBanner(): HTMLDivElement {
       let el = document.getElementById(ID) as HTMLDivElement | null;
-      if (el) return el;
+      if (el) { el.style.display = ''; return el; }
       el = document.createElement('div');
       el.id = ID;
       el.style.cssText = [
@@ -66,21 +66,26 @@ export default defineConfig({
       el.style.borderLeft = `3px solid ${accent}`;
       const linkHtml = link ? ` · <a href="${link}" target="_blank" style="color:${accent};text-decoration:underline">view run</a>` : '';
       const icon = state === 'building' ? '⏳' : state === 'success' ? '✓' : '✗';
-      el.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:14px;line-height:1.4">${icon}</span><span style="flex:1">${msg}${linkHtml}</span></div>`;
+      el.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:14px;line-height:1.4">${icon}</span><span style="flex:1">${msg}${linkHtml}</span><button id="${ID}-close" style="background:none;border:none;color:${fg};opacity:0.5;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 4px" title="dismiss">×</button></div>`;
+      el.style.display = '';
       requestAnimationFrame(() => {
         el!.style.opacity = '1';
         el!.style.transform = 'translateY(0)';
       });
+      const closeBtn = document.getElementById(`${ID}-close`);
+      if (closeBtn) closeBtn.onclick = () => { dismissed = true; hide(); };
     }
     function hide() {
       const el = document.getElementById(ID) as HTMLDivElement | null;
       if (!el) return;
       el.style.opacity = '0';
       el.style.transform = 'translateY(8px)';
+      window.setTimeout(() => { if (el) el.style.display = 'none'; }, 250);
     }
 
     let lastReportedRunId: number | null = null;
-    let lastSuccessHiddenAt: number = 0;
+    let dismissed: boolean = false;
+    let dismissedRunId: number | null = null;
 
     async function pollOnce(): Promise<void> {
       try {
@@ -89,6 +94,11 @@ export default defineConfig({
         const j = await r.json();
         const run = j.workflow_runs?.[0];
         if (!run) { hide(); return; }
+
+        // If user dismissed the banner for this specific run, stay hidden until
+        // a newer run replaces it.
+        if (dismissed && dismissedRunId === run.id) { hide(); return; }
+        if (dismissedRunId !== run.id) dismissed = false;
 
         const now = Date.now();
         const updatedAt = new Date(run.updated_at).getTime();
@@ -100,18 +110,30 @@ export default defineConfig({
         } else if (run.status === 'in_progress') {
           paint('building', 'Building &amp; deploying… ~90s', url);
         } else if (run.status === 'completed') {
-          // Show terminal state for ~30s after completion, then auto-hide.
-          if (run.conclusion === 'success' && ageMs < 30000) {
-            if (lastReportedRunId !== run.id) {
-              paint('success', `Live at <a href="${SITE_URL}" target="_blank" style="color:inherit;text-decoration:underline">studio-marginalia.pages.dev</a>`, url);
-              lastReportedRunId = run.id;
-              lastSuccessHiddenAt = now + 12000;
-            } else if (now > lastSuccessHiddenAt) {
+          if (run.conclusion === 'cancelled') {
+            // Cancelled runs are usually CI concurrency noise — never our user's problem.
+            hide();
+          } else if (run.conclusion === 'failure') {
+            // Sticky for 5 min after a failure, then auto-hide so it doesn't nag forever.
+            if (ageMs < 5 * 60 * 1000) {
+              paint('failure', 'Last deploy failed. Click for log.', url);
+            } else {
               hide();
             }
-          } else if (run.conclusion === 'failure' || run.conclusion === 'cancelled') {
-            paint('failure', `Last deploy ${run.conclusion}. Click for log.`, url);
-          } else if (ageMs > 30000) {
+          } else if (run.conclusion === 'success') {
+            // Show success briefly when first observed, then auto-hide.
+            if (lastReportedRunId !== run.id && ageMs < 60000) {
+              paint('success', `Live at <a href="${SITE_URL}" target="_blank" style="color:inherit;text-decoration:underline">studio-marginalia.pages.dev</a>`, url);
+              lastReportedRunId = run.id;
+              window.setTimeout(() => {
+                if (!dismissed) { dismissedRunId = run.id; dismissed = true; hide(); }
+              }, 12000);
+            } else if (lastReportedRunId === run.id) {
+              // Already shown for this run — leave dismiss timeout to handle hide.
+            } else {
+              hide();
+            }
+          } else {
             hide();
           }
         }
