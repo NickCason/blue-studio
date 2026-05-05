@@ -42,15 +42,29 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://studio-marg
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       (function () {
-        try {
-          var t = localStorage.getItem('sm-theme');
-          if (!t) {
-            t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-          }
-          document.documentElement.setAttribute('data-theme', t);
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark');
+        function getTheme() {
+          try {
+            var stored = localStorage.getItem('sm-theme');
+            if (stored === 'dark' || stored === 'light') return stored;
+            return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          } catch (e) { return 'dark'; }
         }
+        // Initial application before paint.
+        document.documentElement.setAttribute('data-theme', getTheme());
+        // Re-apply on every View Transitions soft-nav. The new document's <html>
+        // arrives without data-theme; we paint it before the swap so there's no flash.
+        document.addEventListener('astro:before-swap', function (ev) {
+          try { ev.newDocument.documentElement.setAttribute('data-theme', getTheme()); } catch (e) {}
+        });
+        // Optional: react live to system-pref changes when the user has not chosen explicitly.
+        try {
+          var mql = window.matchMedia('(prefers-color-scheme: light)');
+          mql.addEventListener('change', function () {
+            if (!localStorage.getItem('sm-theme')) {
+              document.documentElement.setAttribute('data-theme', getTheme());
+            }
+          });
+        } catch (e) {}
       })();
     </script>
     <ClientRouter />
