@@ -146,21 +146,26 @@ export default defineConfig({
     (window as any).smDeployStatus = pollOnce;
 
     // Optimistic banner — show immediately on Tina save without waiting for
-    // Actions API to surface the run. We intercept fetch() and detect mutating
-    // requests to Tina Cloud's content API, which fires when the user saves.
+    // Actions API to surface the run. We intercept fetch() and only trigger
+    // on GraphQL MUTATIONS (writes) to Tina Cloud — not regular queries.
     const origFetch = window.fetch.bind(window);
     window.fetch = ((input: any, init?: any) => {
       try {
         const url = typeof input === 'string' ? input : (input?.url ?? '');
         const method = (init?.method || (typeof input === 'object' && input?.method) || 'GET').toUpperCase();
-        if (url.includes('content.tinajs.io') && method !== 'GET' && method !== 'OPTIONS') {
-          paint('building', 'Save committed. Watching for build…');
-          // Schedule rapid polls for the next ~30s to catch the workflow run.
-          let i = 0;
-          const burst = window.setInterval(() => {
-            void pollOnce();
-            if (++i >= 10) window.clearInterval(burst);
-          }, 3000);
+        if (url.includes('content.tinajs.io') && method === 'POST' && init?.body) {
+          const body = typeof init.body === 'string' ? init.body : '';
+          // Only trigger on actual save operations — GraphQL mutations or
+          // Tina's documented save mutation names.
+          const isMutation = /\bmutation\b/.test(body) || /addPendingDocument|updateDocument|createDocument/.test(body);
+          if (isMutation) {
+            paint('building', 'Save committed. Watching for build…');
+            let i = 0;
+            const burst = window.setInterval(() => {
+              void pollOnce();
+              if (++i >= 10) window.clearInterval(burst);
+            }, 3000);
+          }
         }
       } catch { /* ignore */ }
       return origFetch(input, init);
