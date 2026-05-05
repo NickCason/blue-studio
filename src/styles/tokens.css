@@ -19,6 +19,7 @@
   --accent:        var(--np-amethyst);
   --accent-warm:   var(--np-rose);
   --accent-cool:   var(--np-moss);
+  --accent-text:   #B8A4D6;
 
   --border-soft:   rgba(232, 228, 223, 0.08);
   --border-dashed: rgba(232, 228, 223, 0.10);
@@ -93,6 +94,7 @@
   --card-tint:     rgba(42, 30, 52, 0.05);
   --card-edge:     rgba(42, 30, 52, 0.10);
   --inset-sheen:   rgba(42, 30, 52, 0.04);
+  --accent-text:   #3D2A55;
   --shadow-card:
     0 8px 20px -8px rgba(42, 30, 52, 0.18),
     inset 0 1px 0 var(--inset-sheen);
