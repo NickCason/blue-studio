@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+const all = await getCollection('noticing');
+all.sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime());
+const items = all.slice(0, 3);
+---
+{items.length > 0 && (
+  <section class="block">
+    <div class="label">Noticing</div>
+    {items.map((n) => (
+      <div class="item">
+        <p class="quote serif-italic">{n.data.quote}</p>
+        <div class="src">{n.data.source}</div>
+      </div>
+    ))}
+  </section>
+)}
+<style>
+  .block { margin-bottom: 40px; }
+  .label { font-size: 10px; letter-spacing: var(--tracking-cap); text-transform: uppercase; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .label::before { content: ''; width: 14px; height: 1px; background: var(--accent); opacity: 0.5; }
+  .item { padding: 10px 0; border-bottom: 1px dashed var(--border-soft); }
+  .item:last-child { border-bottom: none; }
+  .quote { font-size: 15px; line-height: 1.4; color: var(--fg); margin: 0 0 4px; }
+  .src { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); opacity: 0.65; }
+</style>

@@ -1,0 +1,108 @@
+/* tokens.css — design tokens for Studio Marginalia */
+
+:root {
+  /* Palette */
+  --np-ink:        #0F0F14;
+  --np-plum:       #2A1E34;
+  --np-amethyst:   #6E5A8A;
+  --np-moss:       #5F7A6C;
+  --np-sage:       #A3B2A4;
+  --np-rose:       #5A1F2E;
+  --np-bone:       #E8E4DF;
+  --np-bone-soft:  #D8D3CD;
+
+  /* Semantic — dark theme defaults */
+  --bg:            var(--np-ink);
+  --bg-soft:       var(--np-plum);
+  --fg:            var(--np-bone);
+  --fg-soft:       var(--np-bone-soft);
+  --accent:        var(--np-amethyst);
+  --accent-warm:   var(--np-rose);
+  --accent-cool:   var(--np-moss);
+
+  --border-soft:   rgba(232, 228, 223, 0.08);
+  --border-dashed: rgba(232, 228, 223, 0.10);
+  --rule-dotted:   rgba(232, 228, 223, 0.18);
+  --card-tint:     rgba(110, 90, 138, 0.08);
+  --card-edge:     rgba(110, 90, 138, 0.18);
+  --inset-sheen:   rgba(232, 228, 223, 0.05);
+
+  /* Type scale */
+  --fs-display:   clamp(2.5rem, 6vw, 3.5rem);
+  --fs-essay-hed: clamp(1.75rem, 4vw, 2.75rem);
+  --fs-section:   clamp(1.5rem, 3vw, 2rem);
+  --fs-pull:      clamp(1.25rem, 3vw, 1.875rem);
+  --fs-body:      1.0625rem;
+  --fs-small:     0.875rem;
+  --fs-meta:      0.6875rem;
+  --fs-eyebrow:   0.6875rem;
+
+  --lh-tight:     1.05;
+  --lh-snug:      1.2;
+  --lh-body:      1.55;
+
+  --tracking-eyebrow: 0.22em;
+  --tracking-meta:    0.18em;
+  --tracking-cap:     0.32em;
+
+  /* Spacing */
+  --gap-xs: 0.25rem;
+  --gap-sm: 0.5rem;
+  --gap-md: 1rem;
+  --gap-lg: 1.75rem;
+  --gap-xl: 2.5rem;
+  --gap-2xl: 3.5rem;
+
+  /* Radii */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-pill: 999px;
+
+  /* Shadows */
+  --shadow-card:
+    0 12px 28px -8px rgba(110, 90, 138, 0.4),
+    inset 0 1px 0 var(--inset-sheen);
+  --shadow-stage:
+    0 30px 80px -20px rgba(110, 90, 138, 0.35),
+    0 18px 40px -10px rgba(15, 15, 20, 0.6),
+    inset 0 1px 0 var(--inset-sheen);
+
+  /* Glow */
+  --glow-amethyst: 0 0 24px rgba(110, 90, 138, 0.4);
+  --glow-flame:    0 0 12px rgba(255, 200, 120, 0.7),
+                   0 0 24px rgba(255, 154, 85, 0.5),
+                   0 0 40px rgba(255, 154, 85, 0.3);
+
+  /* Motion */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 180ms;
+  --t-med: 320ms;
+}
+
+/* Light theme overrides */
+:root[data-theme='light'] {
+  --bg:            var(--np-bone);
+  --bg-soft:       #f1ede8;
+  --fg:            var(--np-plum);
+  --fg-soft:       #4a3955;
+  --border-soft:   rgba(42, 30, 52, 0.08);
+  --border-dashed: rgba(42, 30, 52, 0.12);
+  --rule-dotted:   rgba(42, 30, 52, 0.18);
+  --card-tint:     rgba(42, 30, 52, 0.05);
+  --card-edge:     rgba(42, 30, 52, 0.10);
+  --inset-sheen:   rgba(42, 30, 52, 0.04);
+  --shadow-card:
+    0 8px 20px -8px rgba(42, 30, 52, 0.18),
+    inset 0 1px 0 var(--inset-sheen);
+  --shadow-stage:
+    0 20px 50px -16px rgba(42, 30, 52, 0.18),
+    0 10px 24px -10px rgba(42, 30, 52, 0.10),
+    inset 0 1px 0 var(--inset-sheen);
+  --glow-amethyst: 0 0 18px rgba(110, 90, 138, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-med: 0ms; }
+}

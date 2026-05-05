@@ -1,0 +1,60 @@
+---
+import Base from '~/layouts/Base.astro';
+import { getAllPosts } from '~/lib/getAllPosts';
+import EssayCard from '~/components/post-types/EssayCard.astro';
+import NoteCard from '~/components/post-types/NoteCard.astro';
+import QuoteCard from '~/components/post-types/QuoteCard.astro';
+import LinkCard from '~/components/post-types/LinkCard.astro';
+import PhotoCard from '~/components/post-types/PhotoCard.astro';
+import AudioCard from '~/components/post-types/AudioCard.astro';
+import OnHerDesk from '~/components/sidebar/OnHerDesk.astro';
+import Noticing from '~/components/sidebar/Noticing.astro';
+import IssueCounter from '~/components/sidebar/IssueCounter.astro';
+
+const posts = await getAllPosts();
+---
+<Base>
+  <div class="reading-room">
+    <div class="feed">
+      {posts.map((post) => {
+        switch (post.data.type) {
+          case 'essay': return <EssayCard post={post} />;
+          case 'note':  return <NoteCard post={post} />;
+          case 'quote': return <QuoteCard post={post} />;
+          case 'link':  return <LinkCard post={post} />;
+          case 'photo': return <PhotoCard post={post} />;
+          case 'audio': return <AudioCard post={post} />;
+        }
+      })}
+      {posts.length === 0 && <p class="empty serif-italic">Quiet for now. Something soon.</p>}
+    </div>
+    <aside class="aside">
+      <OnHerDesk />
+      <Noticing />
+      <IssueCounter />
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .reading-room {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 56px;
+    padding: 44px 56px 56px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .feed > :global(*) {
+    padding-top: 36px;
+    border-top: 1px dashed var(--rule-dotted);
+    margin-top: 36px;
+  }
+  .feed > :global(*:first-child) { padding-top: 0; border-top: none; margin-top: 0; }
+  .aside { border-left: 1px dashed var(--rule-dotted); padding-left: 32px; position: relative; }
+  .empty { font-size: 22px; opacity: 0.7; padding: 60px 0; }
+  @media (max-width: 900px) {
+    .reading-room { grid-template-columns: 1fr; gap: 40px; padding: 28px 20px; }
+    .aside { border-left: none; border-top: 1px dashed var(--rule-dotted); padding: 32px 0 0 0; }
+  }
+</style>

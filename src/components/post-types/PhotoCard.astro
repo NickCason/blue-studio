@@ -1,0 +1,20 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MetaRow from '~/components/ui/MetaRow.astro';
+import { formatDate } from '~/lib/formatDate';
+
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'photo') throw new Error('PhotoCard requires photo post');
+---
+<article class="photo-card">
+  <a href={`/journal/${post.slug}/`}>
+    <img src={post.data.image} alt={post.data.caption ?? ''} class="img" loading="lazy" />
+  </a>
+  <MetaRow items={['Photo', formatDate(post.data.publishedAt)]} />
+  {post.data.caption && <p class="cap serif-italic">— {post.data.caption}</p>}
+</article>
+<style>
+  .img { width: 100%; height: auto; border-radius: var(--r-lg); box-shadow: var(--shadow-card); margin-bottom: 14px; }
+  .cap { font-size: 15px; opacity: 0.9; margin: 0; }
+</style>

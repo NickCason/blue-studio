@@ -1,0 +1,50 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+const { pathname } = Astro.url;
+const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/') || (path !== '/' && pathname.startsWith(path));
+---
+<nav class="site-nav">
+  <a href="/" class="wordmark">studio<span class="wordmark__dot">·</span>marginalia</a>
+  <div class="nav-links">
+    <a href="/" class:list={['nav-link', { active: pathname === '/' }]}>Journal</a>
+    <a href="/work/" class:list={['nav-link', { active: isActive('/work') }]}>Work</a>
+    <a href="/about/" class:list={['nav-link', { active: isActive('/about') }]}>About</a>
+    <ThemeToggle />
+  </div>
+</nav>
+
+<style>
+  .site-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 36px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    backdrop-filter: blur(2px);
+    position: relative;
+    z-index: 5;
+  }
+  .wordmark {
+    font-family: 'Fraunces Variable', Georgia, serif;
+    font-style: italic;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    font-variation-settings: 'SOFT' 80, 'opsz' 80;
+    color: var(--fg);
+  }
+  .wordmark__dot { color: var(--accent); padding: 0 4px; opacity: 0.85; }
+  .nav-links { display: flex; gap: 26px; align-items: center; }
+  .nav-link {
+    color: var(--fg-soft);
+    font-size: 11px;
+    letter-spacing: var(--tracking-meta);
+    text-transform: uppercase;
+    font-weight: 500;
+    opacity: 0.78;
+  }
+  .nav-link:hover, .nav-link.active { opacity: 1; color: var(--accent); }
+  @media (max-width: 640px) {
+    .site-nav { padding: 14px 20px; }
+    .nav-links { gap: 14px; }
+  }
+</style>

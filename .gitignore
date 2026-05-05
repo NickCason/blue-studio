@@ -1,0 +1,12 @@
+node_modules
+dist
+.astro
+.env
+.env.local
+.env.*.local
+.DS_Store
+*.log
+playwright-report
+test-results
+.wrangler
+src/content/posts/**/*.waveform.json

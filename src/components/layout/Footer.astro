@@ -1,0 +1,32 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="left">
+    <span class="serif-italic">studio·marginalia</span>
+    <span> — written and maintained by Nina Pfeiffer</span>
+  </div>
+  <div class="right">
+    <a href="/rss.xml">RSS</a>
+    <span> · </span>
+    <span>© {year}</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 36px 36px 28px;
+    border-top: 1px dashed var(--border-dashed);
+    color: var(--fg-soft);
+    font-size: var(--fs-small);
+    margin-top: 64px;
+  }
+  .site-footer a { color: var(--fg-soft); }
+  .site-footer a:hover { color: var(--accent); }
+  @media (max-width: 640px) {
+    .site-footer { flex-direction: column; gap: 8px; padding: 28px 20px; text-align: center; }
+  }
+</style>

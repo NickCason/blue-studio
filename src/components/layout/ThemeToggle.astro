@@ -1,0 +1,27 @@
+---
+// ThemeToggle.astro — candle & wisp toggle
+---
+<button class="candle" id="themeToggle" aria-label="Toggle theme" type="button">
+  <span class="candle__stick" aria-hidden="true">
+    <span class="candle__flame"></span>
+    <span class="candle__smoke">
+      <svg viewBox="0 0 14 24" preserveAspectRatio="none">
+        <path d="M7 24 Q3 18 7 12 Q11 6 7 0" stroke="currentColor" stroke-width="0.6" fill="none" opacity="0.55"/>
+      </svg>
+    </span>
+  </span>
+</button>
+
+<script>
+  import { toggleTheme } from '~/lib/theme';
+  const btn = document.getElementById('themeToggle');
+  const updateLabel = () => {
+    const t = document.documentElement.getAttribute('data-theme') ?? 'dark';
+    btn?.setAttribute('aria-label', t === 'dark' ? 'Snuff the candle (switch to light)' : 'Light the candle (switch to dark)');
+  };
+  updateLabel();
+  btn?.addEventListener('click', () => {
+    toggleTheme();
+    updateLabel();
+  });
+</script>

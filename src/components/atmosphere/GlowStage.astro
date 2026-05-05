@@ -1,0 +1,12 @@
+---
+// GlowStage.astro — wraps content in the layered velvet ground
+import FilmGrain from './FilmGrain.astro';
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+<div class={`glow-stage ${className}`}>
+  <FilmGrain />
+  <slot />
+</div>

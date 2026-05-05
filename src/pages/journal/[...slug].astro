@@ -1,0 +1,42 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '~/layouts/Base.astro';
+import EssayPage from '~/components/post-permalinks/EssayPage.astro';
+import NotePage from '~/components/post-permalinks/NotePage.astro';
+import QuotePage from '~/components/post-permalinks/QuotePage.astro';
+import LinkPage from '~/components/post-permalinks/LinkPage.astro';
+import PhotoPage from '~/components/post-permalinks/PhotoPage.astro';
+import AudioPage from '~/components/post-permalinks/AudioPage.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+let title = 'Post — Studio Marginalia';
+let description: string | undefined;
+switch (post.data.type) {
+  case 'essay': title = `${post.data.title} — Studio Marginalia`; description = post.data.dek; break;
+  case 'link':  title = `${post.data.title} — Studio Marginalia`; break;
+  case 'audio': title = `${post.data.title} — Studio Marginalia`; description = post.data.transcript?.slice(0, 160); break;
+  case 'quote': title = `From ${post.data.source} — Studio Marginalia`; break;
+  case 'note':  title = 'Note — Studio Marginalia'; break;
+  case 'photo': title = `Photo — Studio Marginalia`; description = post.data.caption; break;
+}
+---
+<Base title={title} description={description} type="article">
+  <div class="page-wrap">
+    {post.data.type === 'essay' && <EssayPage post={post} />}
+    {post.data.type === 'note'  && <NotePage  post={post} />}
+    {post.data.type === 'quote' && <QuotePage post={post} />}
+    {post.data.type === 'link'  && <LinkPage  post={post} />}
+    {post.data.type === 'photo' && <PhotoPage post={post} />}
+    {post.data.type === 'audio' && <AudioPage post={post} />}
+  </div>
+</Base>
+<style>
+  .page-wrap { padding: 0 36px; }
+  @media (max-width: 640px) { .page-wrap { padding: 0 20px; } }
+</style>

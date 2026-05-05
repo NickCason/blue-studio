@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '~/lib/formatDate';
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'note') throw new Error();
+const { Content } = await post.render();
+---
+<article class="permalink note-perma">
+  <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
+  <blockquote class="body serif-italic"><Content /></blockquote>
+</article>
+<style>
+  .permalink { padding: 80px 0; max-width: 60ch; margin: 0 auto; text-align: center; }
+  .date { margin-bottom: 28px; }
+  .body {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    line-height: 1.5;
+    color: var(--fg);
+    border-left: none;
+    padding: 0;
+    margin: 0;
+    font-variation-settings: 'SOFT' 100, 'opsz' 144;
+    font-weight: 300;
+  }
+  .body :global(p) { margin: 0 0 1em; }
+</style>

@@ -1,0 +1,66 @@
+/* atmosphere.css — sparkles, grain, glow stage */
+
+.glow-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.glow-stage::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 1200px 600px at 50% -10%, rgba(110, 90, 138, 0.45), transparent 60%),
+    radial-gradient(ellipse 800px 500px at 90% 30%, rgba(95, 122, 108, 0.18), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 10% 80%, rgba(90, 31, 46, 0.18), transparent 60%),
+    linear-gradient(180deg, var(--np-plum) 0%, var(--np-ink) 60%, #08080d 100%);
+  pointer-events: none;
+  z-index: -2;
+}
+:root[data-theme='light'] .glow-stage::before {
+  background:
+    radial-gradient(ellipse 1000px 500px at 100% 0%, rgba(42,30,52,0.10), transparent 50%),
+    radial-gradient(ellipse 600px 400px at 0% 100%, rgba(90,31,46,0.06), transparent 60%),
+    var(--np-bone);
+}
+
+.film-grain {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+:root[data-theme='light'] .film-grain { opacity: 0.03; }
+
+.sparkles {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.sparkles span {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--np-bone);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(232, 228, 223, 0.8);
+  opacity: 0;
+  animation: drift 14s ease-in-out infinite;
+}
+.sparkles span:nth-child(1) { left: 18%; top: 22%; animation-delay: 0s; }
+.sparkles span:nth-child(2) { left: 72%; top: 14%; animation-delay: 2.4s; }
+.sparkles span:nth-child(3) { left: 88%; top: 56%; animation-delay: 5.1s; }
+.sparkles span:nth-child(4) { left: 8%; top: 68%; animation-delay: 7.8s; }
+.sparkles span:nth-child(5) { left: 44%; top: 82%; animation-delay: 10.2s; width: 1.5px; height: 1.5px; }
+.sparkles span:nth-child(6) { left: 60%; top: 38%; animation-delay: 12.5s; }
+@keyframes drift {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+  20% { opacity: 0.9; }
+  50% { opacity: 0.6; transform: translate(8px, -12px) scale(1); }
+  80% { opacity: 0.4; }
+  100% { opacity: 0; transform: translate(16px, -24px) scale(0.8); }
+}
+:root[data-theme='light'] .sparkles { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sparkles { display: none; }
+}

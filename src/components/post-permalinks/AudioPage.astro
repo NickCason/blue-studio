@@ -1,0 +1,29 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import AudioCard from '~/components/post-types/AudioCard.astro';
+import { formatDate } from '~/lib/formatDate';
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'audio') throw new Error();
+const { Content } = await post.render();
+---
+<article class="permalink audio-perma">
+  <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
+  <AudioCard post={post} />
+  {post.data.transcript && (
+    <details class="transcript">
+      <summary>Read transcript</summary>
+      <div class="prose serif"><p>{post.data.transcript}</p></div>
+    </details>
+  )}
+  <div class="prose serif"><Content /></div>
+</article>
+<style>
+  .permalink { padding: 40px 0; max-width: 64ch; margin: 0 auto; }
+  .date { margin-bottom: 16px; }
+  .transcript { margin-top: 24px; padding: 16px; background: var(--card-tint); border-radius: var(--r-md); border: 1px solid var(--card-edge); }
+  .transcript summary { cursor: pointer; color: var(--accent); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; }
+  .transcript .prose { margin-top: 12px; }
+  .prose { font-size: 17px; line-height: 1.7; }
+  .prose :global(p) { margin: 0 0 1em; }
+</style>

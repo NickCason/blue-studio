@@ -1,0 +1,28 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MetaRow from '~/components/ui/MetaRow.astro';
+import { formatDate } from '~/lib/formatDate';
+import { readTime } from '~/lib/readTime';
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'essay') throw new Error();
+const { Content } = await post.render();
+const mins = readTime(post.body);
+---
+<article class="permalink essay-perma">
+  <MetaRow items={['Essay', formatDate(post.data.publishedAt), `${mins} min`]} />
+  <h1 class="hed serif-italic">{post.data.title}</h1>
+  {post.data.dek && <p class="dek serif-italic">{post.data.dek}</p>}
+  <div class="prose"><Content /></div>
+</article>
+<style>
+  .permalink { padding: 40px 0; }
+  .hed { font-size: var(--fs-display); line-height: var(--lh-tight); margin: 0 0 16px; max-width: 22ch; font-weight: 400; }
+  .dek { font-size: 19px; line-height: 1.55; color: var(--fg-soft); max-width: 56ch; margin: 0 0 36px; opacity: 0.92; }
+  .prose { font-family: 'Fraunces Variable', Georgia, serif; font-size: 17px; line-height: 1.7; max-width: 64ch; }
+  .prose :global(h2) { font-style: italic; font-size: 28px; margin-top: 2em; font-variation-settings: 'SOFT' 80, 'opsz' 60; }
+  .prose :global(p) { margin: 0 0 1.2em; }
+  .prose :global(blockquote) { border-left: 2px solid var(--accent); padding-left: 1.2em; margin: 1.5em 0; font-style: italic; color: var(--fg-soft); }
+  .prose :global(a) { color: var(--accent); border-bottom: 1px dotted var(--accent); }
+  .prose :global(em) { color: var(--accent); font-style: italic; }
+</style>

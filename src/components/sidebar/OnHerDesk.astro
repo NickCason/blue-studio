@@ -1,0 +1,47 @@
+---
+import { getEntry } from 'astro:content';
+const now = await getEntry('now', 'now');
+---
+{now && (
+  <section class="block">
+    <div class="label">On her desk</div>
+    {now.data.reading && (
+      <div class="item">
+        <i class="ph-duotone ph-book-open"></i>
+        <div class="text">
+          <span class="meta">Reading</span>
+          <em class="serif-italic">{now.data.reading.title}</em><br />— {now.data.reading.author}
+        </div>
+      </div>
+    )}
+    {now.data.brewing && (
+      <div class="item">
+        <i class="ph-duotone ph-pen-nib"></i>
+        <div class="text">
+          <span class="meta">Brewing</span>
+          {now.data.brewing}
+        </div>
+      </div>
+    )}
+    {now.data.listening && (
+      <div class="item">
+        <i class="ph-duotone ph-music-notes-simple"></i>
+        <div class="text">
+          <span class="meta">Listening</span>
+          <em class="serif-italic">{now.data.listening.title}</em><br />— {now.data.listening.artist}
+        </div>
+      </div>
+    )}
+  </section>
+)}
+<style>
+  .block { margin-bottom: 40px; }
+  .label { font-size: 10px; letter-spacing: var(--tracking-cap); text-transform: uppercase; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .label::before { content: ''; width: 14px; height: 1px; background: var(--accent); opacity: 0.5; }
+  .item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px dashed var(--border-soft); }
+  .item:last-child { border-bottom: none; }
+  .item i { font-size: 18px; color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+  .text { font-size: 13px; line-height: 1.45; color: var(--fg-soft); }
+  .text em { color: var(--fg); font-size: 15px; }
+  .meta { font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent); opacity: 0.7; display: block; margin-bottom: 2px; }
+</style>

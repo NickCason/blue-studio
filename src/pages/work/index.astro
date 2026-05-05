@@ -1,0 +1,106 @@
+---
+import Base from '~/layouts/Base.astro';
+const formspree = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT || '';
+---
+<Base title="Work with me — Studio Marginalia" description="Quiet marketing for the patient, and the patiently impatient. Brand voice, content strategy, campaign copy by Nina Pfeiffer.">
+  <section class="hero">
+    <div class="eyebrow eyebrow-rule"><span /><span>For brands done performing</span><span /></div>
+    <h1 class="hed serif-italic">Quiet marketing for the patient,<br /><em class="amp">and the patiently impatient</em>.</h1>
+    <p class="sub serif">I write brand voice, content strategy, and campaign copy for small businesses that want to sound like themselves again. No "engagement-bait." No twelve posts a week. Just one true thing, well said, on a useful cadence.</p>
+    <a href="#contact" class="cta">Tell me about your brand <i class="ph-duotone ph-arrow-right"></i></a>
+  </section>
+
+  <section class="services">
+    <div class="section-label"><span>✦</span><span>What we do</span><span>✦</span></div>
+    <div class="grid">
+      <div class="card"><i class="ph-duotone ph-quotes"></i><h4 class="serif-italic">Brand voice & messaging</h4><p>The way the brand sounds in writing — guidelines, tone, vocabulary, what it doesn't say. Includes a voice doc you'll actually use.</p></div>
+      <div class="card"><i class="ph-duotone ph-calendar-blank"></i><h4 class="serif-italic">Content strategy</h4><p>What to post, on what cadence, and (just as important) what to stop doing. Editorial calendars built around your real capacity.</p></div>
+      <div class="card"><i class="ph-duotone ph-pen-nib"></i><h4 class="serif-italic">Campaign concepts & copy</h4><p>Launches, seasonal pushes, the occasional manifesto. From idea to written assets, ready to ship.</p></div>
+      <div class="card"><i class="ph-duotone ph-flame"></i><h4 class="serif-italic">Slow retainers</h4><p>One good thing per week. Could be a post, an email, a campaign brief — whatever the brand actually needs that week.</p></div>
+    </div>
+  </section>
+
+  <section class="fit">
+    <div class="section-label"><span>✦</span><span>Is this for you?</span><span>✦</span></div>
+    <div class="grid">
+      <div class="yes"><h5 class="serif-italic">Probably yes if —</h5>
+        <ul>
+          <li><i class="ph-duotone ph-check-circle"></i>You think your brand sounds like everyone else's and it bothers you.</li>
+          <li><i class="ph-duotone ph-check-circle"></i>You'd rather post less and mean it more.</li>
+          <li><i class="ph-duotone ph-check-circle"></i>You want a writer in the room, not a "content creator."</li>
+          <li><i class="ph-duotone ph-check-circle"></i>Your audience doesn't show up for trends. Yours.</li>
+        </ul>
+      </div>
+      <div class="no"><h5 class="serif-italic">Probably no if —</h5>
+        <ul>
+          <li><i class="ph-duotone ph-x-circle"></i>You need 30 pieces of content this month, no preference on which.</li>
+          <li><i class="ph-duotone ph-x-circle"></i>Your strategy is "go viral."</li>
+          <li><i class="ph-duotone ph-x-circle"></i>You want someone to manage your DMs.</li>
+          <li><i class="ph-duotone ph-x-circle"></i>The brief is "make us sound like &lt;competitor&gt;."</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <h3 class="serif-italic">Tell me about your brand.</h3>
+    <p class="sub-small">A few sentences is plenty. I'll write back within a week.</p>
+    {formspree ? (
+      <form class="form" action={formspree} method="POST">
+        <input type="text" name="name" placeholder="Your name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <textarea name="message" placeholder="What does the brand do? What feels off about how it currently sounds? What would 'better' look like to you?" required></textarea>
+        <button type="submit">Send <i class="ph-duotone ph-paper-plane-tilt"></i></button>
+      </form>
+    ) : (
+      <p class="form-fallback serif-italic">Email <a href="mailto:hello@studiomarginalia.com">hello@studiomarginalia.com</a> for now.</p>
+    )}
+  </section>
+</Base>
+
+<style>
+  .hero { padding: 72px 56px 56px; text-align: center; }
+  .eyebrow-rule { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 24px; font-size: 11px; letter-spacing: var(--tracking-cap); text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .eyebrow-rule > span:first-child, .eyebrow-rule > span:last-child { width: 24px; height: 1px; background: var(--accent); opacity: 0.5; }
+  .hed { font-size: clamp(2.25rem, 6vw, 3.625rem); line-height: 1.05; margin: 0 auto 24px; max-width: 18ch; font-weight: 300; letter-spacing: -0.02em; text-shadow: 0 2px 32px rgba(110,90,138,0.5); font-variation-settings: 'SOFT' 100, 'opsz' 144; }
+  :root[data-theme='light'] .hed { text-shadow: none; }
+  .hed em.amp { color: var(--accent); font-style: normal; font-weight: 300; }
+  .sub { font-size: 18px; line-height: 1.55; color: var(--fg-soft); max-width: 56ch; margin: 0 auto 36px; opacity: 0.92; }
+  .cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border: 1px solid var(--accent); background: rgba(110,90,138,0.18); color: var(--fg); border-radius: var(--r-pill); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; box-shadow: var(--shadow-card); }
+  .cta:hover { background: var(--accent); color: var(--np-ink); }
+  .cta i { font-size: 16px; }
+
+  .services, .fit { padding: 64px 56px; border-top: 1px dashed var(--border-dashed); }
+  .section-label { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 11px; letter-spacing: var(--tracking-cap); text-transform: uppercase; color: var(--accent); margin-bottom: 32px; }
+  .section-label > span:first-child, .section-label > span:last-child { opacity: 0.6; }
+  .services .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; max-width: 800px; margin: 0 auto; }
+  .services .card { padding: 24px 24px 22px; background: var(--card-tint); border: 1px solid var(--card-edge); border-radius: var(--r-lg); }
+  .services .card i { font-size: 28px; color: var(--accent); margin-bottom: 14px; display: block; }
+  .services .card h4 { font-size: 22px; line-height: 1.2; margin: 0 0 8px; color: var(--fg); font-weight: 400; }
+  .services .card p { font-size: 14px; line-height: 1.55; color: var(--fg-soft); margin: 0; opacity: 0.9; }
+
+  .fit { background: rgba(15,15,20,0.4); }
+  :root[data-theme='light'] .fit { background: rgba(232,228,223,0.5); }
+  .fit .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; max-width: 800px; margin: 0 auto; }
+  .fit h5 { font-size: 20px; color: var(--fg); margin: 0 0 14px; font-weight: 400; }
+  .fit ul { list-style: none; padding: 0; margin: 0; }
+  .fit li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; color: var(--fg-soft); line-height: 1.5; }
+  .fit li i { font-size: 16px; margin-top: 2px; flex-shrink: 0; }
+  .fit .yes i { color: var(--np-moss); }
+  .fit .no i { color: var(--np-rose); }
+
+  .contact { padding: 64px 56px 96px; border-top: 1px dashed var(--border-dashed); text-align: center; }
+  .contact h3 { font-size: 32px; margin: 0 0 12px; font-weight: 400; }
+  .sub-small { font-size: 14px; opacity: 0.85; margin: 0 0 28px; color: var(--fg-soft); }
+  .form { max-width: 500px; margin: 0 auto; text-align: left; }
+  .form input, .form textarea { width: 100%; padding: 14px 18px; background: rgba(232,228,223,0.04); border: 1px solid var(--border-soft); border-radius: var(--r-md); color: var(--fg); font-family: inherit; font-size: 14px; margin-bottom: 12px; }
+  :root[data-theme='light'] .form input, :root[data-theme='light'] .form textarea { background: rgba(42,30,52,0.04); }
+  .form textarea { min-height: 120px; resize: vertical; font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.5; }
+  .form button { background: var(--accent); color: var(--np-ink); border: none; padding: 14px 28px; border-radius: var(--r-pill); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; box-shadow: var(--glow-amethyst); }
+  .form-fallback a { color: var(--accent); border-bottom: 1px dotted var(--accent); }
+
+  @media (max-width: 760px) {
+    .hero, .services, .fit, .contact { padding-left: 20px; padding-right: 20px; }
+    .services .grid, .fit .grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+</style>

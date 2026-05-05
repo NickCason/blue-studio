@@ -1,0 +1,57 @@
+---
+import Base from '~/layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const cases = await getCollection('portfolio');
+cases.sort((a, b) => (a.data.order - b.data.order) || (b.data.year - a.data.year));
+---
+<Base title="Selected work — Studio Marginalia">
+  <section class="page">
+    <h1 class="hed serif-italic">Selected work</h1>
+    <p class="sub">A small library of campaigns and brand projects from the last few years. Some loud, most quiet, all written by hand.</p>
+    <div class="grid">
+      {cases.map((c) => {
+        const styleStr = c.data.image
+          ? `background-image:url(${c.data.image});background-size:cover;background-position:center;`
+          : 'background:linear-gradient(135deg,var(--np-rose),var(--np-amethyst));';
+        return c.data.externalUrl ? (
+          <a class="case" href={c.data.externalUrl} target="_blank" rel="noopener">
+            <div class="img" style={styleStr}></div>
+            <div class="body">
+              <div class="meta">{c.data.year} · {c.data.serviceCategory}</div>
+              <h3 class="name serif-italic">{c.data.name}</h3>
+              <p class="pitch">{c.data.pitch}</p>
+            </div>
+          </a>
+        ) : (
+          <div class="case">
+            <div class="img" style={styleStr}></div>
+            <div class="body">
+              <div class="meta">{c.data.year} · {c.data.serviceCategory}</div>
+              <h3 class="name serif-italic">{c.data.name}</h3>
+              <p class="pitch">{c.data.pitch}</p>
+            </div>
+          </div>
+        );
+      })}
+      {cases.length === 0 && <p class="empty serif-italic">Case studies coming soon.</p>}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page { padding: 56px; max-width: 1280px; margin: 0 auto; }
+  .hed { font-size: 36px; margin: 0 0 8px; font-weight: 400; }
+  .sub { color: var(--fg-soft); margin: 0 0 36px; max-width: 56ch; opacity: 0.92; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .case { display: block; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border-soft); background: rgba(15,15,20,0.5); color: inherit; transition: transform var(--t-fast), box-shadow var(--t-fast); }
+  :root[data-theme='light'] .case { background: rgba(232,228,223,0.5); }
+  a.case:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+  .img { height: 180px; }
+  .body { padding: 18px 22px 20px; }
+  .meta { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .name { font-size: 22px; line-height: 1.2; margin: 0 0 6px; color: var(--fg); font-weight: 400; }
+  .pitch { font-size: 13px; line-height: 1.5; color: var(--fg-soft); margin: 0; opacity: 0.9; }
+  .empty { padding: 48px 0; opacity: 0.7; }
+  @media (max-width: 760px) { .page { padding: 32px 20px; } .grid { grid-template-columns: 1fr; } }
+</style>

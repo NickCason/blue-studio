@@ -1,0 +1,25 @@
+---
+interface Props { items: string[]; class?: string; }
+const { items, class: className = '' } = Astro.props;
+---
+<div class:list={['meta-row', className]}>
+  {items.map((item, i) => (
+    <>
+      {i > 0 && <span class="dot" aria-hidden="true"></span>}
+      <span>{item}</span>
+    </>
+  ))}
+  <slot />
+</div>
+<style>
+  .meta-row {
+    font-size: var(--fs-meta);
+    letter-spacing: var(--tracking-meta);
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-weight: 500;
+  }
+  .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--accent); opacity: 0.5; }
+</style>

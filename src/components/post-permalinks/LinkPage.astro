@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MetaRow from '~/components/ui/MetaRow.astro';
+import { formatDate } from '~/lib/formatDate';
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'link') throw new Error();
+const { Content } = await post.render();
+---
+<article class="permalink link-perma">
+  <MetaRow items={['Link', formatDate(post.data.publishedAt), post.data.source]} />
+  <a href={post.data.url} target="_blank" rel="noopener" class="title-link">
+    <h1 class="title serif-italic">{post.data.title} <span class="arrow">↗</span></h1>
+  </a>
+  <div class="comment serif-italic"><Content /></div>
+  <a href={post.data.url} target="_blank" rel="noopener" class="cta">Go read it →</a>
+</article>
+<style>
+  .permalink { padding: 60px 0; max-width: 64ch; margin: 0 auto; }
+  .title-link { color: var(--fg); }
+  .title { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; margin: 0 0 28px; font-weight: 400; }
+  .arrow { color: var(--accent); }
+  .comment { font-size: 19px; line-height: 1.65; color: var(--fg-soft); margin-bottom: 36px; opacity: 0.92; }
+  .comment :global(p) { margin: 0 0 1em; }
+  .cta { display: inline-block; padding: 12px 24px; border: 1px solid var(--accent); border-radius: var(--r-pill); color: var(--fg); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; }
+  .cta:hover { background: var(--accent); color: var(--np-ink); }
+</style>

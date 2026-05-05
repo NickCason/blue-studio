@@ -1,0 +1,18 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '~/lib/formatDate';
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'photo') throw new Error();
+---
+<article class="permalink photo-perma">
+  <img src={post.data.image} alt={post.data.caption ?? ''} class="img" />
+  {post.data.caption && <p class="cap serif-italic">— {post.data.caption}</p>}
+  <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
+</article>
+<style>
+  .permalink { padding: 40px 0; max-width: 1100px; margin: 0 auto; }
+  .img { width: 100%; height: auto; border-radius: var(--r-xl); box-shadow: var(--shadow-stage); margin-bottom: 24px; }
+  .cap { font-size: 19px; opacity: 0.9; max-width: 56ch; margin: 0 0 12px; }
+  .date { color: var(--accent); }
+</style>

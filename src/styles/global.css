@@ -1,0 +1,44 @@
+/* global.css — base, fonts, typography */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/fraunces/wght-italic.css';
+@import '@fontsource-variable/inter';
+@import '~/styles/tokens.css';
+@import '~/styles/atmosphere.css';
+@import '~/styles/candle.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--fg); }
+button { font: inherit; cursor: pointer; }
+
+.serif {
+  font-family: 'Fraunces Variable', Georgia, serif;
+  font-variation-settings: 'SOFT' 60, 'opsz' 36;
+}
+.serif-italic {
+  font-family: 'Fraunces Variable', Georgia, serif;
+  font-style: italic;
+  font-variation-settings: 'SOFT' 100, 'opsz' 144;
+}
+.eyebrow {
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+}
+.measure-prose { max-width: 64ch; }
+
+::selection { background: var(--accent); color: var(--np-ink); }

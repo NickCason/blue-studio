@@ -1,0 +1,61 @@
+---
+import '~/styles/global.css';
+import '@phosphor-icons/web/duotone';
+import '@phosphor-icons/web/regular';
+import '@phosphor-icons/web/fill';
+import Nav from '~/components/layout/Nav.astro';
+import Footer from '~/components/layout/Footer.astro';
+import Sparkles from '~/components/atmosphere/Sparkles.astro';
+import GlowStage from '~/components/atmosphere/GlowStage.astro';
+import { inlineBootstrap } from '~/lib/theme';
+import { ClientRouter } from 'astro:transitions';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+}
+const {
+  title = 'Studio Marginalia — Nina Pfeiffer',
+  description = 'A personal-first journal and a quiet marketing studio. Essays, notes, and voice memos by Nina Pfeiffer.',
+  image = '/og-default.png',
+  type = 'website',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://studio-marginalia.pages.dev').toString();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0F0F14" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title="Studio Marginalia" href="/rss.xml" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(image, canonical).toString()} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline set:html={inlineBootstrap} />
+    <ClientRouter />
+  </head>
+  <body>
+    <Sparkles />
+    <GlowStage class="page">
+      <Nav />
+      <main>
+        <slot />
+      </main>
+      <Footer />
+    </GlowStage>
+    <style is:global>
+      .page { min-height: 100vh; }
+      main { position: relative; z-index: 2; }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,126 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MetaRow from '~/components/ui/MetaRow.astro';
+import { formatRelative } from '~/lib/formatDate';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+
+interface Props { post: CollectionEntry<'posts'>; }
+const { post } = Astro.props;
+if (post.data.type !== 'audio') throw new Error('AudioCard requires audio post');
+
+// Resolve audio + waveform from src/content/posts.
+const audioRel = post.data.audioFile;                     // e.g. "notes-from-the-build/05-voice-memo/audio.mp3"
+const audioAbs = path.resolve('src/content/posts', audioRel);
+const wfPath = audioAbs.replace(/\.[^.]+$/, '.waveform.json');
+let peaks: number[] = Array.from({ length: 32 }, () => 0.5);
+try {
+  const wf = JSON.parse(await fs.readFile(wfPath, 'utf-8'));
+  if (Array.isArray(wf.peaks) && wf.peaks.length > 0) peaks = wf.peaks;
+} catch {
+  // missing waveform — render flat bars
+}
+
+// Public URL is derived from the audio's relative path with separators slugged,
+// matching the integration's slugForAudio() output.
+const dirSlug = path.dirname(audioRel).replace(/[\\/]+/g, '-');
+const ext = path.extname(audioRel);
+const publicUrl = `/audio/${dirSlug}${ext}`;
+---
+<article class="audio-card">
+  <MetaRow items={['Voice memo', formatRelative(post.data.publishedAt) + (post.data.context ? ` · ${post.data.context}` : '')]} />
+  <div class="player" data-audio-src={publicUrl}>
+    <div class="head">
+      <button class="play" aria-label="Play audio">
+        <i class="ph-fill ph-play"></i>
+      </button>
+      <div class="info">
+        <a href={`/journal/${post.slug}/`} class="title-link">
+          <div class="title serif-italic">{post.data.title}</div>
+        </a>
+        <div class="dur">{post.data.duration}</div>
+      </div>
+    </div>
+    <div class="waveform">
+      {peaks.map((p) => <div class="bar" style={`height: ${Math.max(12, Math.round(p * 100))}%`}></div>)}
+    </div>
+  </div>
+</article>
+
+<script>
+  for (const player of document.querySelectorAll<HTMLDivElement>('.player')) {
+    const src = (player as HTMLElement).dataset.audioSrc!;
+    const audio = new Audio(src);
+    audio.preload = 'none';
+    const playBtn = player.querySelector<HTMLButtonElement>('.play')!;
+    const playIcon = playBtn.querySelector('i')!;
+    const bars = Array.from(player.querySelectorAll<HTMLDivElement>('.bar'));
+    let raf = 0;
+
+    const updatePlayed = () => {
+      if (!audio.duration) return;
+      const ratio = audio.currentTime / audio.duration;
+      const playedCount = Math.floor(ratio * bars.length);
+      bars.forEach((b, i) => b.classList.toggle('played', i < playedCount));
+      raf = audio.paused ? 0 : requestAnimationFrame(updatePlayed);
+    };
+
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        playIcon.className = 'ph-fill ph-pause';
+        raf = requestAnimationFrame(updatePlayed);
+      } else {
+        audio.pause();
+        playIcon.className = 'ph-fill ph-play';
+        cancelAnimationFrame(raf);
+      }
+    });
+    audio.addEventListener('ended', () => {
+      playIcon.className = 'ph-fill ph-play';
+      bars.forEach((b) => b.classList.remove('played'));
+      cancelAnimationFrame(raf);
+    });
+  }
+</script>
+
+<style>
+  .player {
+    background: linear-gradient(135deg, rgba(110, 90, 138, 0.18), rgba(42, 30, 52, 0.4));
+    border: 1px solid var(--card-edge);
+    border-radius: var(--r-lg);
+    padding: 22px 26px;
+    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 var(--inset-sheen);
+  }
+  :root[data-theme='light'] .player {
+    background: linear-gradient(135deg, rgba(110, 90, 138, 0.10), rgba(42, 30, 52, 0.06));
+  }
+  .head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .play {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent);
+    color: var(--np-ink);
+    border: none;
+    box-shadow: var(--glow-amethyst);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .play i { font-size: 20px; padding-left: 2px; }
+  .title-link { color: var(--fg); }
+  .title { font-size: 17px; line-height: 1.3; color: var(--fg); margin-bottom: 4px; }
+  .dur { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); opacity: 0.75; }
+  .waveform { display: flex; align-items: center; gap: 2px; height: 44px; }
+  .bar {
+    flex: 1;
+    background: var(--fg);
+    opacity: 0.18;
+    border-radius: 1.5px;
+    transition: opacity var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+  }
+  .bar.played {
+    background: var(--accent);
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(110,90,138,0.6);
+  }
+</style>
