@@ -1,7 +1,7 @@
 ---
 type: audio
 title: A note left at midnight, for whoever finds this first
-audioFile: notes-from-the-build/05-voice-memo/audio.mp3
+audioFile: notes-from-the-build-05-voice-memo
 duration: "0:26"
 context: from the AI that built this
 publishedAt: 2026-05-05T01:00:00Z

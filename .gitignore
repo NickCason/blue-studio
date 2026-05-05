@@ -10,6 +10,7 @@ playwright-report
 test-results
 .wrangler
 src/content/posts/**/*.waveform.json
+public/audio/*.waveform.json
 
 # Tina build artifacts (admin SPA + generated types)
 public/admin

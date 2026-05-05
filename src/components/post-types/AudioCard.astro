@@ -9,10 +9,9 @@ interface Props { post: CollectionEntry<'posts'>; }
 const { post } = Astro.props;
 if (post.data.type !== 'audio') throw new Error('AudioCard requires audio post');
 
-// Resolve audio + waveform from src/content/posts.
-const audioRel = post.data.audioFile;                     // e.g. "notes-from-the-build/05-voice-memo/audio.mp3"
-const audioAbs = path.resolve('src/content/posts', audioRel);
-const wfPath = audioAbs.replace(/\.[^.]+$/, '.waveform.json');
+// audioFile is a slug pointing at public/audio/<slug>.mp3 (sibling .waveform.json).
+const slug = post.data.audioFile;
+const wfPath = path.resolve('public/audio', `${slug}.waveform.json`);
 let peaks: number[] = Array.from({ length: 32 }, () => 0.5);
 try {
   const wf = JSON.parse(await fs.readFile(wfPath, 'utf-8'));
@@ -20,12 +19,7 @@ try {
 } catch {
   // missing waveform — render flat bars
 }
-
-// Public URL is derived from the audio's relative path with separators slugged,
-// matching the integration's slugForAudio() output.
-const dirSlug = path.dirname(audioRel).replace(/[\\/]+/g, '-');
-const ext = path.extname(audioRel);
-const publicUrl = `/audio/${dirSlug}${ext}`;
+const publicUrl = `/audio/${slug}.mp3`;
 ---
 <article class="audio-card">
   <MetaRow items={['Voice memo', formatRelative(post.data.publishedAt) + (post.data.context ? ` · ${post.data.context}` : '')]} />

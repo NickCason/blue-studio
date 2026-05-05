@@ -1,34 +1,18 @@
-// waveform.mjs — Astro integration: decode audio assets, emit sibling waveform JSON,
-// and copy audio files into public/audio/ with safe slug-based names.
+// waveform.mjs — Astro integration: decode audio assets in public/audio/,
+// emit sibling .waveform.json next to each .mp3.
+// Audio assets live in public/audio/ (NOT under src/content/) so they're
+// served directly + Tina Cloud's content indexer doesn't try to ingest binaries.
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 const BUCKETS = 32;
 const AUDIO_EXT = ['.mp3', '.m4a', '.wav', '.ogg', '.flac'];
 
-function slugForAudio(absPath, postsRoot) {
-  const rel = path.relative(postsRoot, absPath);
-  const dirSlug = path.dirname(rel).replace(/[\\/]+/g, '-');
-  const ext = path.extname(rel);
-  return `${dirSlug}${ext}`;
-}
-
-async function processAudioFile(filepath, postsRoot, publicAudioDir) {
+async function processAudioFile(filepath) {
   const wfOut = filepath.replace(/\.[^.]+$/, '.waveform.json');
-  const slugName = slugForAudio(filepath, postsRoot);
-  const publicCopy = path.join(publicAudioDir, slugName);
-
   try {
     const audioStat = await fs.stat(filepath);
     const wfStat = await fs.stat(wfOut).catch(() => null);
-
-    // Always ensure public copy exists.
-    const pubStat = await fs.stat(publicCopy).catch(() => null);
-    if (!pubStat || pubStat.mtimeMs < audioStat.mtimeMs) {
-      await fs.mkdir(path.dirname(publicCopy), { recursive: true });
-      await fs.copyFile(filepath, publicCopy);
-    }
-
     if (wfStat && wfStat.mtimeMs >= audioStat.mtimeMs) return; // up to date
 
     const { default: decode } = await import('audio-decode');
@@ -67,26 +51,18 @@ async function walk(dir) {
 }
 
 export default function waveformIntegration() {
+  const audioRoot = () => path.resolve('public/audio');
+  const run = async (logger, label) => {
+    const files = await walk(audioRoot());
+    if (!files.length) { logger.info(`${label}: no audio assets in public/audio`); return; }
+    logger.info(`${label}: processing ${files.length} audio file(s)`);
+    await Promise.all(files.map(processAudioFile));
+  };
   return {
     name: 'studio-marginalia:waveform',
     hooks: {
-      'astro:build:start': async ({ logger }) => {
-        const postsRoot = path.resolve('src/content/posts');
-        const publicAudioDir = path.resolve('public/audio');
-        const files = await walk(postsRoot);
-        if (!files.length) { logger.info('no audio assets found'); return; }
-        logger.info(`processing ${files.length} audio file(s)`);
-        await Promise.all(files.map((f) => processAudioFile(f, postsRoot, publicAudioDir)));
-      },
-      'astro:server:start': async ({ logger }) => {
-        const postsRoot = path.resolve('src/content/posts');
-        const publicAudioDir = path.resolve('public/audio');
-        const files = await walk(postsRoot);
-        if (files.length) {
-          logger.info(`processing ${files.length} audio file(s) (dev)`);
-          await Promise.all(files.map((f) => processAudioFile(f, postsRoot, publicAudioDir)));
-        }
-      },
+      'astro:build:start': async ({ logger }) => run(logger, 'build'),
+      'astro:server:start': async ({ logger }) => run(logger, 'dev'),
     },
   };
 }
