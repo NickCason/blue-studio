@@ -198,8 +198,27 @@ export default defineConfig({
 
     // Initial poll so banner reflects current state when admin opens.
     void pollOnce();
-    // Steady-state polling while admin is open.
-    window.setInterval(pollOnce, POLL_MS);
+    // Steady-state polling while admin is open AND visible. Browsers throttle
+    // setInterval to ~1/min on hidden tabs, which is what made the bar look
+    // "stuck" when switching tabs. We pause our timer on hide and force an
+    // immediate poll on show to catch up.
+    let steadyTimer: number | null = null;
+    function startSteady() {
+      if (steadyTimer !== null) return;
+      steadyTimer = window.setInterval(pollOnce, POLL_MS);
+    }
+    function stopSteady() {
+      if (steadyTimer !== null) { window.clearInterval(steadyTimer); steadyTimer = null; }
+    }
+    if (!document.hidden) startSteady();
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopSteady();
+      } else {
+        void pollOnce();   // immediate catch-up on tab focus
+        startSteady();
+      }
+    });
 
     return cms;
   },
