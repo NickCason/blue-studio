@@ -97,6 +97,20 @@ Implementation: small inline script in `src/pages/index.astro` (the journal feed
 
 **Out of scope.** Scroll-reveal anywhere else (work page, portfolio, about). Keep the effect signature to the journal feed only.
 
+### B. About page editable in Tina
+
+**Problem.** `src/pages/about.astro` hardcodes its prose body directly in the `.astro` template. Nina can't edit it through Tina admin — only through code.
+
+**Fix.**
+
+- New content collection `pages` (markdown, singleton-friendly). Schema: `title: string`, optional `dek: string`, body is markdown content.
+- New entry `src/content/pages/about.md` containing the current about-page prose, ported from the hardcoded JSX. The single signoff line ("— Nina") and the inline `<em>` / `<a>` formatting from the current template are preserved as markdown.
+- `src/pages/about.astro` is rewritten to fetch the entry via `getEntry('pages', 'about')`, render `data.title` as `<h1>`, optional `data.dek`, then `<Content />` for the body.
+- New Tina collection `pages` exposed in `tina/config.ts`. Singleton-style: `allowedActions: { create: false, delete: false }`. Fields: title (string, required), dek (string, optional), body (rich-text). Path: `src/content/pages`.
+- Existing CSS in `about.astro` is preserved unchanged.
+
+**Out of scope.** Migrating the work index page to be editable (it has a contact form + structured cards — not a clean port). Migrating the journal index. Just the about page for now.
+
 ### 11. OG image generation
 
 **Problem.** Shared Studio Marginalia URLs (Slack, iMessage, X, etc.) currently surface no preview image — every link looks generic.
@@ -117,12 +131,13 @@ Implementation: small inline script in `src/pages/index.astro` (the journal feed
 Smallest blast radius first; visual-impact items late so they're shippable independently.
 
 1. **A. Portfolio detail pages** — pure additive route, no shared code touched.
-2. **3. Tags + filter route** — additive component + new route. Touches several cards but only adds rendering.
-3. **2. Portfolio tile hover** — local CSS only.
-4. **5. Quote/note upgrade** — touches `QuoteCard`, `NoteCard`, `QuotePage`, `NotePage`. Visual-only changes.
-5. **1. Photo lightbox** — new component + small touches in `PhotoCard`, `PhotoPage`, `Base`. Most JS.
-6. **8. Scroll-reveal** — small script + CSS in feed page.
-7. **11. OG image generation** — last because it adds a runtime dependency (`satori`) and is the only step that touches the build output meaningfully.
+2. **B. About page editable** — schema + collection entry + page rewrite + tina config. Self-contained.
+3. **3. Tags + filter route** — additive component + new route. Touches several cards but only adds rendering.
+4. **2. Portfolio tile hover** — local CSS only.
+5. **5. Quote/note upgrade** — touches `QuoteCard`, `NoteCard`, `QuotePage`, `NotePage`. Visual-only changes.
+6. **1. Photo lightbox** — new component + small touches in `PhotoCard`, `PhotoPage`, `Base`. Most JS.
+7. **8. Scroll-reveal** — small script + CSS in feed page.
+8. **11. OG image generation** — last because it adds a build-time dependency (`satori`) and is the only step that touches the build output meaningfully.
 
 ## Risk & uptime
 
