@@ -7,7 +7,8 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
   <a href="/" class="wordmark">studio<span class="wordmark__dot">·</span>marginalia</a>
   <div class="nav-links">
     <a href="/" class:list={['nav-link', { active: pathname === '/' }]}>Journal</a>
-    <a href="/work/" class:list={['nav-link', { active: isActive('/work') }]}>Work</a>
+    <a href="/work/" class:list={['nav-link', { active: isActive('/work') && !isActive('/work/portfolio') }]}>Work</a>
+    <a href="/work/portfolio/" class:list={['nav-link', { active: isActive('/work/portfolio') }]}>Portfolio</a>
     <a href="/about/" class:list={['nav-link', { active: isActive('/about') }]}>About</a>
     <ThemeToggle />
   </div>
