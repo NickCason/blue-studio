@@ -3,18 +3,32 @@ import { slugifyTag } from '~/lib/slugifyTag';
 interface Props { tag: string; }
 const { tag } = Astro.props;
 ---
-<a class="tag" href={`/journal/tag/${slugifyTag(tag)}/`}>#{tag}</a>
+<a class="tag" href={`/journal/tag/${slugifyTag(tag)}/`}>{tag}</a>
 <style>
   .tag {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--accent-text);
-    border-bottom: 1px dotted var(--accent-text);
-    padding: 2px 0;
-    transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
-    opacity: 0.85;
+    background: rgba(110, 90, 138, 0.12);
+    border: 1px solid var(--card-edge);
+    border-radius: var(--r-pill);
+    padding: 3px 10px 4px;
+    line-height: 1.1;
+    transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
   }
-  .tag:hover { opacity: 1; color: var(--fg); border-bottom-color: var(--fg); }
+  .tag:hover {
+    background: rgba(110, 90, 138, 0.22);
+    color: var(--fg);
+    border-color: var(--accent);
+  }
+  :root[data-theme='light'] .tag {
+    background: rgba(74, 51, 112, 0.06);
+    border-color: rgba(74, 51, 112, 0.18);
+  }
+  :root[data-theme='light'] .tag:hover {
+    background: rgba(74, 51, 112, 0.14);
+  }
 </style>

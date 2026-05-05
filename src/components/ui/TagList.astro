@@ -1,10 +1,14 @@
 ---
 import Tag from './Tag.astro';
-interface Props { tags?: readonly string[] | string[]; }
-const { tags } = Astro.props;
+interface Props {
+  tags?: readonly string[] | string[];
+  /** When true, drops the top margin so tags can sit inline with sibling meta. */
+  inline?: boolean;
+}
+const { tags, inline = false } = Astro.props;
 ---
 {tags && tags.length > 0 && (
-  <div class="tag-list">
+  <div class:list={['tag-list', { inline }]}>
     {tags.map((t) => <Tag tag={t} />)}
   </div>
 )}
@@ -12,7 +16,8 @@ const { tags } = Astro.props;
   .tag-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px 16px;
+    gap: 8px;
     margin-top: 12px;
   }
+  .tag-list.inline { margin-top: 0; }
 </style>

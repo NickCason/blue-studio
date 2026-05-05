@@ -16,12 +16,14 @@ const meta = ['Essay', formatDate(post.data.publishedAt)];
   <MetaRow items={meta}>
     {post.data.threadId && <Pill><i class="ph-duotone ph-link-simple-horizontal"></i> {post.data.threadId}</Pill>}
   </MetaRow>
-  <TagList tags={post.data.tags} />
   <a href={`/journal/${post.slug}/`} class="hed-link">
     <h2 class="hed serif-italic">{post.data.title}</h2>
   </a>
   {post.data.dek && <p class="dek">{post.data.dek}</p>}
-  <div class="readtime"><i class="ph-duotone ph-book-open"></i> <span>{mins} min · soft read</span></div>
+  <div class="meta-strip">
+    <span class="readtime"><i class="ph-duotone ph-book-open"></i> {mins} min · soft read</span>
+    <TagList tags={post.data.tags} inline />
+  </div>
 </article>
 
 <style>
@@ -30,6 +32,7 @@ const meta = ['Essay', formatDate(post.data.publishedAt)];
   .hed { font-size: var(--fs-essay-hed); line-height: var(--lh-tight); margin: 0 0 16px; text-shadow: 0 2px 28px rgba(110,90,138,0.4); letter-spacing: -0.015em; font-weight: 400; max-width: 22ch; }
   :root[data-theme='light'] .hed { text-shadow: none; }
   .dek { font-family: 'Fraunces Variable', Georgia, serif; font-size: 17px; line-height: 1.55; color: var(--fg-soft); max-width: 56ch; margin: 0 0 20px; opacity: 0.9; }
-  .readtime { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-text); opacity: 0.75; display: inline-flex; align-items: center; gap: 8px; }
+  .meta-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+  .readtime { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-text); opacity: 0.85; display: inline-flex; align-items: center; gap: 8px; }
   .readtime i { font-size: 14px; }
 </style>
