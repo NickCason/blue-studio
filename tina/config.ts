@@ -4,12 +4,10 @@
 
 import { defineConfig } from 'tinacms';
 
-const branch = process.env.NEXT_PUBLIC_TINA_BRANCH || process.env.HEAD || 'main';
-
 export default defineConfig({
-  branch,
-  clientId: process.env.TINA_PUBLIC_CLIENT_ID ?? '',
-  token: process.env.TINA_TOKEN ?? '',
+  branch: 'main',
+  clientId: process.env.TINA_PUBLIC_CLIENT_ID || '',
+  token: process.env.TINA_TOKEN || '',
 
   build: {
     outputFolder: 'admin',
@@ -29,16 +27,6 @@ export default defineConfig({
         label: 'Posts',
         path: 'src/content/posts',
         format: 'md',
-        ui: {
-          filename: {
-            // Nina sets the slug; Tina suggests one from the title.
-            readonly: false,
-            slugify: (values: any) => {
-              const t = values?.title || values?.source || values?.url || 'note';
-              return String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60);
-            },
-          },
-        },
         fields: [
           {
             type: 'string',
