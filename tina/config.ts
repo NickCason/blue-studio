@@ -111,51 +111,30 @@ export default defineConfig({
     let runFirstSeenAt = new Map<number, number>();
     let successShownAt = new Map<number, number>();
     let dismissedRunId: number | null = null;
-    let cachedJobsForRun: { runId: number; jobs: any[] } | null = null;
-    let cachedJobsAt: number = 0;
 
-    async function fetchJobs(runId: number): Promise<any[]> {
-      // Cache job fetches for ~3s to avoid hitting GitHub API too hard.
-      if (cachedJobsForRun?.runId === runId && Date.now() - cachedJobsAt < 3000) {
-        return cachedJobsForRun.jobs;
-      }
-      try {
-        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/runs/${runId}/jobs`, { cache: 'no-store' });
-        if (!r.ok) return [];
-        const j = await r.json();
-        const jobs = j.jobs || [];
-        cachedJobsForRun = { runId, jobs };
-        cachedJobsAt = Date.now();
-        return jobs;
-      } catch { return []; }
-    }
-
-    function summarizeProgress(jobs: any[]): { progress: number; currentStepName: string } {
-      // Look at the first non-skipped job (we have one job: 'deploy').
-      const job = jobs.find((j: any) => j.status !== 'skipped') ?? jobs[0];
-      if (!job) return { progress: 0.05, currentStepName: 'Starting…' };
-      const steps: any[] = job.steps || [];
-      // Filter out post-job/setup-meta steps that aren't user-meaningful.
-      const meaningful = steps.filter((s: any) => !['Post Run actions/checkout@v4','Complete job','Set up job'].includes(s.name));
-      const total = meaningful.length || steps.length;
+    function summarizeProgress(steps: any[]): { progress: number; currentStepName: string } {
+      const meaningful = (steps || []).filter((s: any) => !['Post Run actions/checkout@v4','Complete job','Set up job'].includes(s.name));
+      const total = meaningful.length;
       if (total === 0) return { progress: 0.05, currentStepName: 'Starting…' };
       const completed = meaningful.filter((s: any) => s.status === 'completed').length;
       const inProgress = meaningful.find((s: any) => s.status === 'in_progress');
       const currentStepName = inProgress?.name ?? (completed === total ? 'Wrapping up…' : meaningful[completed]?.name ?? 'Starting…');
-      // Add a small fractional credit for the in-progress step so the bar moves visibly.
       const progress = Math.min(0.99, (completed + (inProgress ? 0.5 : 0)) / total);
       return { progress, currentStepName };
     }
 
     async function pollOnce(): Promise<void> {
       try {
-        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/runs?per_page=1&branch=main`, { cache: 'no-store' });
+        // Hit our own Pages Function — server-side proxy with authenticated GH
+        // token. Avoids the 60/hour anonymous limit per IP that was breaking
+        // everything before.
+        const r = await fetch('/api/deploy-status', { cache: 'no-store' });
         if (!r.ok) return;
         const j = await r.json();
-        const run = j.workflow_runs?.[0];
+        const run = j.run;
         if (!run) { hide(); return; }
+        const steps = j.steps || [];
 
-        // Track first-seen time for elapsed display + auto-hide windows.
         if (!runFirstSeenAt.has(run.id)) runFirstSeenAt.set(run.id, Date.now());
         currentRunId = run.id;
         const url = run.html_url;
@@ -164,14 +143,12 @@ export default defineConfig({
         const elapsedMs = (run.status === 'completed' ? updatedAt : Date.now()) - startedAt;
         const elapsed = fmtDuration(elapsedMs);
 
-        // User explicitly dismissed THIS run — stay hidden.
         if (dismissedRunId === run.id) { hide(); return; }
 
         if (run.status === 'queued') {
           paint('building', 'Queued…', { url, progress: 0.02, elapsed });
         } else if (run.status === 'in_progress') {
-          const jobs = await fetchJobs(run.id);
-          const { progress, currentStepName } = summarizeProgress(jobs);
+          const { progress, currentStepName } = summarizeProgress(steps);
           paint('building', currentStepName, { url, progress, elapsed });
         } else if (run.status === 'completed') {
           if (run.conclusion === 'success') {
@@ -187,12 +164,11 @@ export default defineConfig({
             if (ageMs < 5 * 60 * 1000) paint('failure', `Deploy ${run.conclusion}. Click for log.`, { url, elapsed });
             else hide();
           } else {
-            // cancelled, neutral, action_required, etc. — quiet.
             hide();
           }
         }
       } catch (e) {
-        // CORS / rate-limit / offline — silently skip this tick.
+        // function unreachable / offline — skip silently.
       }
     }
 
