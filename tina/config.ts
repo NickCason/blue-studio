@@ -6,7 +6,7 @@ import { defineConfig } from 'tinacms';
 
 const GH_REPO = 'NickCason/studio-marginalia';
 const SITE_URL = 'https://studio-marginalia.pages.dev';
-const POLL_MS = 8000;
+const POLL_MS = 4000;
 
 export default defineConfig({
   branch: 'main',
@@ -123,9 +123,30 @@ export default defineConfig({
     // Expose for console debugging: smDeployStatus() forces a poll.
     (window as any).smDeployStatus = pollOnce;
 
-    // Initial poll immediately so banner reflects current state when admin opens.
+    // Optimistic banner — show immediately on Tina save without waiting for
+    // Actions API to surface the run. We intercept fetch() and detect mutating
+    // requests to Tina Cloud's content API, which fires when the user saves.
+    const origFetch = window.fetch.bind(window);
+    window.fetch = ((input: any, init?: any) => {
+      try {
+        const url = typeof input === 'string' ? input : (input?.url ?? '');
+        const method = (init?.method || (typeof input === 'object' && input?.method) || 'GET').toUpperCase();
+        if (url.includes('content.tinajs.io') && method !== 'GET' && method !== 'OPTIONS') {
+          paint('building', 'Save committed. Watching for build…');
+          // Schedule rapid polls for the next ~30s to catch the workflow run.
+          let i = 0;
+          const burst = window.setInterval(() => {
+            void pollOnce();
+            if (++i >= 10) window.clearInterval(burst);
+          }, 3000);
+        }
+      } catch { /* ignore */ }
+      return origFetch(input, init);
+    }) as typeof fetch;
+
+    // Initial poll so banner reflects current state when admin opens.
     void pollOnce();
-    // Then poll every POLL_MS while admin is open.
+    // Steady-state polling while admin is open.
     window.setInterval(pollOnce, POLL_MS);
 
     return cms;
