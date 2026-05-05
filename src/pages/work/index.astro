@@ -1,6 +1,11 @@
 ---
 import Base from '~/layouts/Base.astro';
+import { getCollection } from 'astro:content';
 const formspree = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT || '';
+const allCases = await getCollection('portfolio');
+const cases = allCases
+  .sort((a, b) => (a.data.order - b.data.order) || (b.data.year - a.data.year))
+  .slice(0, 3);
 ---
 <Base title="Work with me — Studio Marginalia" description="Quiet marketing for the patient, and the patiently impatient. Brand voice, content strategy, campaign copy by Nina Pfeiffer.">
   <section class="hero">
@@ -39,6 +44,29 @@ const formspree = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT || '';
           <li><i class="ph-duotone ph-x-circle"></i>The brief is "make us sound like &lt;competitor&gt;."</li>
         </ul>
       </div>
+    </div>
+  </section>
+
+  <section class="selected-work">
+    <div class="section-label"><span>✦</span><span>Selected work</span><span>✦</span></div>
+    <div class="tiles">
+      {cases.map((c) => {
+        const styleStr = c.data.image
+          ? `background-image:url(${c.data.image});background-size:cover;background-position:center;`
+          : 'background:linear-gradient(135deg,var(--np-rose),var(--np-amethyst));';
+        return (
+          <div class="tile">
+            <div class="tile-img" style={styleStr}></div>
+            <div class="tile-meta">
+              <div class="tile-year">{c.data.year}</div>
+              <div class="tile-name serif-italic">{c.data.name}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+    <div class="see-all">
+      <a href="/work/portfolio/" class="see-all-link">See all work <i class="ph-duotone ph-arrow-right"></i></a>
     </div>
   </section>
 
@@ -102,5 +130,21 @@ const formspree = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT || '';
   @media (max-width: 760px) {
     .hero, .services, .fit, .contact { padding-left: 20px; padding-right: 20px; }
     .services .grid, .fit .grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  .selected-work { padding: 64px 56px; border-top: 1px dashed var(--border-dashed); }
+  .selected-work .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 900px; margin: 0 auto 28px; }
+  .tile { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-soft); background: rgba(15,15,20,0.5); }
+  :root[data-theme='light'] .tile { background: rgba(232,228,223,0.5); }
+  .tile-img { height: 140px; }
+  .tile-meta { padding: 12px 14px 14px; }
+  .tile-year { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 4px; }
+  .tile-name { font-size: 16px; line-height: 1.25; color: var(--fg); }
+  .see-all { text-align: center; }
+  .see-all-link { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-text); border-bottom: 1px dotted var(--accent-text); padding-bottom: 2px; }
+  .see-all-link i { font-size: 14px; }
+  @media (max-width: 760px) {
+    .selected-work { padding-left: 20px; padding-right: 20px; }
+    .selected-work .tiles { grid-template-columns: 1fr; gap: 16px; }
   }
 </style>
