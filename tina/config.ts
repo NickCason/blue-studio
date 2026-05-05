@@ -53,7 +53,7 @@ export default defineConfig({
       document.body.appendChild(el);
       return el;
     }
-    function paint(state: State, msg: string, link?: string) {
+    function paint(state: State, label: string, opts?: { url?: string; progress?: number; elapsed?: string }) {
       const el = ensureBanner();
       const palette: Record<State, [string, string, string]> = {
         building: ['#2A1E34', '#E8E4DF', '#d4a96a'],
@@ -64,16 +64,36 @@ export default defineConfig({
       el.style.background = bg;
       el.style.color = fg;
       el.style.borderLeft = `3px solid ${accent}`;
-      const linkHtml = link ? ` · <a href="${link}" target="_blank" style="color:${accent};text-decoration:underline">view run</a>` : '';
       const icon = state === 'building' ? '⏳' : state === 'success' ? '✓' : '✗';
-      el.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:14px;line-height:1.4">${icon}</span><span style="flex:1">${msg}${linkHtml}</span><button id="${ID}-close" style="background:none;border:none;color:${fg};opacity:0.5;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 4px" title="dismiss">×</button></div>`;
+      const linkHtml = opts?.url ? `<a href="${opts.url}" target="_blank" style="color:${accent};text-decoration:underline;font-size:11px;opacity:0.8">view run ↗</a>` : '';
+      const progressBar = state === 'building' && opts?.progress !== undefined ? `
+        <div style="width:100%;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:8px;overflow:hidden">
+          <div style="width:${Math.round(opts.progress * 100)}%;height:100%;background:${accent};border-radius:2px;transition:width 400ms cubic-bezier(0.4,0,0.2,1)"></div>
+        </div>` : '';
+      const elapsedHtml = opts?.elapsed ? `<span style="font-size:11px;opacity:0.6;font-variant-numeric:tabular-nums">${opts.elapsed}</span>` : '';
+      el.innerHTML = `
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:14px;line-height:1.4">${icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>
+              ${elapsedHtml}
+            </div>
+            ${progressBar}
+            ${linkHtml ? `<div style="margin-top:6px">${linkHtml}</div>` : ''}
+          </div>
+          <button id="${ID}-close" style="background:none;border:none;color:${fg};opacity:0.5;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 4px" title="dismiss">×</button>
+        </div>`;
       el.style.display = '';
       requestAnimationFrame(() => {
         el!.style.opacity = '1';
         el!.style.transform = 'translateY(0)';
       });
       const closeBtn = document.getElementById(`${ID}-close`);
-      if (closeBtn) closeBtn.onclick = () => { dismissed = true; hide(); };
+      if (closeBtn) closeBtn.onclick = () => {
+        dismissedRunId = currentRunId;
+        hide();
+      };
     }
     function hide() {
       const el = document.getElementById(ID) as HTMLDivElement | null;
@@ -82,10 +102,50 @@ export default defineConfig({
       el.style.transform = 'translateY(8px)';
       window.setTimeout(() => { if (el) el.style.display = 'none'; }, 250);
     }
+    function fmtDuration(ms: number): string {
+      const s = Math.max(0, Math.floor(ms / 1000));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
 
-    let lastReportedRunId: number | null = null;
-    let dismissed: boolean = false;
+    let currentRunId: number | null = null;
+    let runFirstSeenAt = new Map<number, number>();
+    let successShownAt = new Map<number, number>();
     let dismissedRunId: number | null = null;
+    let cachedJobsForRun: { runId: number; jobs: any[] } | null = null;
+    let cachedJobsAt: number = 0;
+
+    async function fetchJobs(runId: number): Promise<any[]> {
+      // Cache job fetches for ~3s to avoid hitting GitHub API too hard.
+      if (cachedJobsForRun?.runId === runId && Date.now() - cachedJobsAt < 3000) {
+        return cachedJobsForRun.jobs;
+      }
+      try {
+        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/runs/${runId}/jobs`, { cache: 'no-store' });
+        if (!r.ok) return [];
+        const j = await r.json();
+        const jobs = j.jobs || [];
+        cachedJobsForRun = { runId, jobs };
+        cachedJobsAt = Date.now();
+        return jobs;
+      } catch { return []; }
+    }
+
+    function summarizeProgress(jobs: any[]): { progress: number; currentStepName: string } {
+      // Look at the first non-skipped job (we have one job: 'deploy').
+      const job = jobs.find((j: any) => j.status !== 'skipped') ?? jobs[0];
+      if (!job) return { progress: 0.05, currentStepName: 'Starting…' };
+      const steps: any[] = job.steps || [];
+      // Filter out post-job/setup-meta steps that aren't user-meaningful.
+      const meaningful = steps.filter((s: any) => !['Post Run actions/checkout@v4','Complete job','Set up job'].includes(s.name));
+      const total = meaningful.length || steps.length;
+      if (total === 0) return { progress: 0.05, currentStepName: 'Starting…' };
+      const completed = meaningful.filter((s: any) => s.status === 'completed').length;
+      const inProgress = meaningful.find((s: any) => s.status === 'in_progress');
+      const currentStepName = inProgress?.name ?? (completed === total ? 'Wrapping up…' : meaningful[completed]?.name ?? 'Starting…');
+      // Add a small fractional credit for the in-progress step so the bar moves visibly.
+      const progress = Math.min(0.99, (completed + (inProgress ? 0.5 : 0)) / total);
+      return { progress, currentStepName };
+    }
 
     async function pollOnce(): Promise<void> {
       try {
@@ -95,45 +155,39 @@ export default defineConfig({
         const run = j.workflow_runs?.[0];
         if (!run) { hide(); return; }
 
-        // If user dismissed the banner for this specific run, stay hidden until
-        // a newer run replaces it.
-        if (dismissed && dismissedRunId === run.id) { hide(); return; }
-        if (dismissedRunId !== run.id) dismissed = false;
-
-        const now = Date.now();
-        const updatedAt = new Date(run.updated_at).getTime();
-        const ageMs = now - updatedAt;
+        // Track first-seen time for elapsed display + auto-hide windows.
+        if (!runFirstSeenAt.has(run.id)) runFirstSeenAt.set(run.id, Date.now());
+        currentRunId = run.id;
         const url = run.html_url;
+        const startedAt = new Date(run.run_started_at || run.created_at).getTime();
+        const updatedAt = new Date(run.updated_at).getTime();
+        const elapsedMs = (run.status === 'completed' ? updatedAt : Date.now()) - startedAt;
+        const elapsed = fmtDuration(elapsedMs);
+
+        // User explicitly dismissed THIS run — stay hidden.
+        if (dismissedRunId === run.id) { hide(); return; }
 
         if (run.status === 'queued') {
-          paint('building', 'Build queued…', url);
+          paint('building', 'Queued…', { url, progress: 0.02, elapsed });
         } else if (run.status === 'in_progress') {
-          paint('building', 'Building &amp; deploying… ~90s', url);
+          const jobs = await fetchJobs(run.id);
+          const { progress, currentStepName } = summarizeProgress(jobs);
+          paint('building', currentStepName, { url, progress, elapsed });
         } else if (run.status === 'completed') {
-          if (run.conclusion === 'cancelled') {
-            // Cancelled runs are usually CI concurrency noise — never our user's problem.
-            hide();
-          } else if (run.conclusion === 'failure') {
-            // Sticky for 5 min after a failure, then auto-hide so it doesn't nag forever.
-            if (ageMs < 5 * 60 * 1000) {
-              paint('failure', 'Last deploy failed. Click for log.', url);
+          if (run.conclusion === 'success') {
+            if (!successShownAt.has(run.id)) successShownAt.set(run.id, Date.now());
+            const shownFor = Date.now() - (successShownAt.get(run.id) ?? Date.now());
+            if (shownFor < 12000) {
+              paint('success', `Live at studio-marginalia.pages.dev`, { url, elapsed });
             } else {
               hide();
             }
-          } else if (run.conclusion === 'success') {
-            // Show success briefly when first observed, then auto-hide.
-            if (lastReportedRunId !== run.id && ageMs < 60000) {
-              paint('success', `Live at <a href="${SITE_URL}" target="_blank" style="color:inherit;text-decoration:underline">studio-marginalia.pages.dev</a>`, url);
-              lastReportedRunId = run.id;
-              window.setTimeout(() => {
-                if (!dismissed) { dismissedRunId = run.id; dismissed = true; hide(); }
-              }, 12000);
-            } else if (lastReportedRunId === run.id) {
-              // Already shown for this run — leave dismiss timeout to handle hide.
-            } else {
-              hide();
-            }
+          } else if (run.conclusion === 'failure' || run.conclusion === 'timed_out') {
+            const ageMs = Date.now() - updatedAt;
+            if (ageMs < 5 * 60 * 1000) paint('failure', `Deploy ${run.conclusion}. Click for log.`, { url, elapsed });
+            else hide();
           } else {
+            // cancelled, neutral, action_required, etc. — quiet.
             hide();
           }
         }
