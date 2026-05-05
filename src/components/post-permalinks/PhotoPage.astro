@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import TagList from '~/components/ui/TagList.astro';
 import { formatDate } from '~/lib/formatDate';
 interface Props { post: CollectionEntry<'posts'>; }
 const { post } = Astro.props;
@@ -9,6 +10,7 @@ if (post.data.type !== 'photo') throw new Error();
   <img src={post.data.image} alt={post.data.caption ?? ''} class="img" />
   {post.data.caption && <p class="cap serif-italic">— {post.data.caption}</p>}
   <div class="date eyebrow">{formatDate(post.data.publishedAt)}</div>
+  <TagList tags={post.data.tags} />
 </article>
 <style>
   .permalink { padding: 40px 0; max-width: 1100px; margin: 0 auto; }

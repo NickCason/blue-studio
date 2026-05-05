@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import MetaRow from '~/components/ui/MetaRow.astro';
+import TagList from '~/components/ui/TagList.astro';
 import { formatDate } from '~/lib/formatDate';
 
 interface Props { post: CollectionEntry<'posts'>; }
@@ -12,6 +13,7 @@ if (post.data.type !== 'photo') throw new Error('PhotoCard requires photo post')
     <img src={post.data.image} alt={post.data.caption ?? ''} class="img" loading="lazy" />
   </a>
   <MetaRow items={['Photo', formatDate(post.data.publishedAt)]} />
+  <TagList tags={post.data.tags} />
   {post.data.caption && <p class="cap serif-italic">— {post.data.caption}</p>}
 </article>
 <style>

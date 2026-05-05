@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import MetaRow from '~/components/ui/MetaRow.astro';
+import TagList from '~/components/ui/TagList.astro';
 import { formatDate } from '~/lib/formatDate';
 interface Props { post: CollectionEntry<'posts'>; }
 const { post } = Astro.props;
@@ -12,6 +13,7 @@ const { Content } = await post.render();
   <a href={post.data.url} target="_blank" rel="noopener" class="title-link">
     <h1 class="title serif-italic">{post.data.title} <span class="arrow">↗</span></h1>
   </a>
+  <TagList tags={post.data.tags} />
   <div class="comment serif-italic"><Content /></div>
   <a href={post.data.url} target="_blank" rel="noopener" class="cta">Go read it →</a>
 </article>

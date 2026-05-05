@@ -1,0 +1,18 @@
+---
+import Tag from './Tag.astro';
+interface Props { tags?: readonly string[] | string[]; }
+const { tags } = Astro.props;
+---
+{tags && tags.length > 0 && (
+  <div class="tag-list">
+    {tags.map((t) => <Tag tag={t} />)}
+  </div>
+)}
+<style>
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin-top: 12px;
+  }
+</style>

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import MetaRow from '~/components/ui/MetaRow.astro';
+import TagList from '~/components/ui/TagList.astro';
 import { formatDate } from '~/lib/formatDate';
 import { readTime } from '~/lib/readTime';
 interface Props { post: CollectionEntry<'posts'>; }
@@ -13,6 +14,7 @@ const mins = readTime(post.body);
   <MetaRow items={['Essay', formatDate(post.data.publishedAt), `${mins} min`]} />
   <h1 class="hed serif-italic">{post.data.title}</h1>
   {post.data.dek && <p class="dek serif-italic">{post.data.dek}</p>}
+  <TagList tags={post.data.tags} />
   <div class="prose"><Content /></div>
 </article>
 <style>

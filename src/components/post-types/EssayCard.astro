@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import MetaRow from '~/components/ui/MetaRow.astro';
 import Pill from '~/components/ui/Pill.astro';
+import TagList from '~/components/ui/TagList.astro';
 import { formatDate } from '~/lib/formatDate';
 import { readTime } from '~/lib/readTime';
 
@@ -15,6 +16,7 @@ const meta = ['Essay', formatDate(post.data.publishedAt)];
   <MetaRow items={meta}>
     {post.data.threadId && <Pill><i class="ph-duotone ph-link-simple-horizontal"></i> {post.data.threadId}</Pill>}
   </MetaRow>
+  <TagList tags={post.data.tags} />
   <a href={`/journal/${post.slug}/`} class="hed-link">
     <h2 class="hed serif-italic">{post.data.title}</h2>
   </a>

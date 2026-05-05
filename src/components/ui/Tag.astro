@@ -1,0 +1,20 @@
+---
+import { slugifyTag } from '~/lib/slugifyTag';
+interface Props { tag: string; }
+const { tag } = Astro.props;
+---
+<a class="tag" href={`/journal/tag/${slugifyTag(tag)}/`}>#{tag}</a>
+<style>
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    border-bottom: 1px dotted var(--accent-text);
+    padding: 2px 0;
+    transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+    opacity: 0.85;
+  }
+  .tag:hover { opacity: 1; color: var(--fg); border-bottom-color: var(--fg); }
+</style>
