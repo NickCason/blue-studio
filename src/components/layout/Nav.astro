@@ -1,7 +1,7 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 const { pathname } = Astro.url;
-const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/') || (path !== '/' && pathname.startsWith(path));
+const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 ---
 <nav class="site-nav">
   <a href="/" class="wordmark">studio<span class="wordmark__dot">·</span>marginalia</a>
@@ -18,22 +18,35 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 36px 16px;
+    gap: 32px;
+    padding: 18px 40px 16px;
     border-bottom: 1px solid var(--border-soft);
     backdrop-filter: blur(2px);
     position: relative;
     z-index: 5;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
   }
   .wordmark {
     font-family: 'Fraunces Variable', Georgia, serif;
     font-style: italic;
-    font-size: 22px;
+    font-size: clamp(18px, 2.4vw, 22px);
     letter-spacing: -0.01em;
     font-variation-settings: 'SOFT' 80, 'opsz' 80;
     color: var(--fg);
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .wordmark__dot { color: var(--accent); padding: 0 4px; opacity: 0.85; }
-  .nav-links { display: flex; gap: 26px; align-items: center; }
+  .nav-links {
+    display: flex;
+    gap: 22px;
+    align-items: center;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
   .nav-link {
     color: var(--fg-soft);
     font-size: 11px;
@@ -41,10 +54,14 @@ const isActive = (path: string) => pathname === path || pathname.startsWith(path
     text-transform: uppercase;
     font-weight: 500;
     opacity: 0.78;
+    white-space: nowrap;
   }
   .nav-link:hover, .nav-link.active { opacity: 1; color: var(--accent); }
   @media (max-width: 640px) {
-    .site-nav { padding: 14px 20px; }
+    .site-nav { padding: 14px 20px; gap: 16px; }
     .nav-links { gap: 14px; }
+  }
+  @media (max-width: 420px) {
+    .nav-link { font-size: 10px; letter-spacing: 0.14em; }
   }
 </style>

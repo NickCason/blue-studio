@@ -1,5 +1,6 @@
 ---
-// ThemeToggle.astro — candle & wisp toggle
+// ThemeToggle.astro — candle & wisp toggle. Re-binds on astro:page-load so it
+// survives View Transitions (ClientRouter swaps the DOM).
 ---
 <button class="candle" id="themeToggle" aria-label="Toggle theme" type="button">
   <span class="candle__stick" aria-hidden="true">
@@ -13,15 +14,37 @@
 </button>
 
 <script>
-  import { toggleTheme } from '~/lib/theme';
-  const btn = document.getElementById('themeToggle');
-  const updateLabel = () => {
-    const t = document.documentElement.getAttribute('data-theme') ?? 'dark';
-    btn?.setAttribute('aria-label', t === 'dark' ? 'Snuff the candle (switch to light)' : 'Light the candle (switch to dark)');
-  };
-  updateLabel();
-  btn?.addEventListener('click', () => {
-    toggleTheme();
+  const KEY = 'sm-theme';
+
+  function applyTheme(theme: 'dark' | 'light') {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem(KEY, theme); } catch { /* noop */ }
+  }
+
+  function toggle() {
+    const current = (document.documentElement.getAttribute('data-theme') ?? 'dark') as 'dark' | 'light';
+    const next: 'dark' | 'light' = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
     updateLabel();
-  });
+  }
+
+  function updateLabel() {
+    const btn = document.getElementById('themeToggle');
+    const t = document.documentElement.getAttribute('data-theme') ?? 'dark';
+    btn?.setAttribute(
+      'aria-label',
+      t === 'dark' ? 'Snuff the candle (switch to light)' : 'Light the candle (switch to dark)',
+    );
+  }
+
+  function bind() {
+    const btn = document.getElementById('themeToggle');
+    if (!btn || (btn as HTMLButtonElement).dataset.smBound === '1') return;
+    (btn as HTMLButtonElement).dataset.smBound = '1';
+    btn.addEventListener('click', toggle);
+    updateLabel();
+  }
+
+  bind();
+  document.addEventListener('astro:page-load', bind);
 </script>
