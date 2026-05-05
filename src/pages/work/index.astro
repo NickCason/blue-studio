@@ -55,13 +55,13 @@ const cases = allCases
           ? `background-image:url(${c.data.image});background-size:cover;background-position:center;`
           : 'background:linear-gradient(135deg,var(--np-rose),var(--np-amethyst));';
         return (
-          <div class="tile">
+          <a class="tile" href={`/work/portfolio/${c.slug}/`}>
             <div class="tile-img" style={styleStr}></div>
             <div class="tile-meta">
               <div class="tile-year">{c.data.year}</div>
               <div class="tile-name serif-italic">{c.data.name}</div>
             </div>
-          </div>
+          </a>
         );
       })}
     </div>

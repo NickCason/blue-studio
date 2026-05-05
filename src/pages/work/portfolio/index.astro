@@ -14,8 +14,8 @@ cases.sort((a, b) => (a.data.order - b.data.order) || (b.data.year - a.data.year
         const styleStr = c.data.image
           ? `background-image:url(${c.data.image});background-size:cover;background-position:center;`
           : 'background:linear-gradient(135deg,var(--np-rose),var(--np-amethyst));';
-        return c.data.externalUrl ? (
-          <a class="case" href={c.data.externalUrl} target="_blank" rel="noopener">
+        return (
+          <a class="case" href={`/work/portfolio/${c.slug}/`}>
             <div class="img" style={styleStr}></div>
             <div class="body">
               <div class="meta">{c.data.year} · {c.data.serviceCategory}</div>
@@ -23,15 +23,6 @@ cases.sort((a, b) => (a.data.order - b.data.order) || (b.data.year - a.data.year
               <p class="pitch">{c.data.pitch}</p>
             </div>
           </a>
-        ) : (
-          <div class="case">
-            <div class="img" style={styleStr}></div>
-            <div class="body">
-              <div class="meta">{c.data.year} · {c.data.serviceCategory}</div>
-              <h3 class="name serif-italic">{c.data.name}</h3>
-              <p class="pitch">{c.data.pitch}</p>
-            </div>
-          </div>
         );
       })}
       {cases.length === 0 && <p class="empty serif-italic">Case studies coming soon.</p>}
