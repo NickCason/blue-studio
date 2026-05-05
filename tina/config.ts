@@ -24,33 +24,38 @@ export default defineConfig({
     },
   },
 
-  // Hook save events and show a live deploy-status banner that polls the
-  // GitHub Actions API for the latest workflow run on main.
+  // Live deploy-status banner. Polls GitHub Actions API every 8s while admin
+  // is open; banner appears whenever there's an in-flight or recently-completed
+  // workflow run on main. No dependency on Tina's event API (which varies
+  // across versions). Exposes window.smDeployStatus() for console debugging.
   cmsCallback: (cms) => {
     if (typeof window === 'undefined') return cms;
+    if ((window as any).__smDeployBannerInit) return cms;
+    (window as any).__smDeployBannerInit = true;
 
     const ID = 'sm-deploy-banner';
+    type State = 'building' | 'success' | 'failure';
+
     function ensureBanner(): HTMLDivElement {
       let el = document.getElementById(ID) as HTMLDivElement | null;
       if (el) return el;
       el = document.createElement('div');
       el.id = ID;
       el.style.cssText = [
-        'position:fixed','bottom:16px','right:16px','z-index:99999',
+        'position:fixed','bottom:16px','right:16px','z-index:2147483647',
         'min-width:280px','max-width:380px',
         'padding:12px 16px','border-radius:10px',
-        'font:500 13px/1.4 system-ui,sans-serif',
+        'font:500 13px/1.4 system-ui,-apple-system,sans-serif',
         'box-shadow:0 12px 28px -8px rgba(0,0,0,0.4)',
         'transition:opacity 200ms,transform 200ms',
-        'opacity:0','transform:translateY(8px)',
+        'opacity:0','transform:translateY(8px)','pointer-events:auto',
       ].join(';');
       document.body.appendChild(el);
       return el;
     }
-    function paint(state: 'idle' | 'building' | 'success' | 'failure', msg: string, link?: string) {
+    function paint(state: State, msg: string, link?: string) {
       const el = ensureBanner();
-      const palette: Record<string, [string, string, string]> = {
-        idle:     ['#2A1E34', '#E8E4DF', '#6E5A8A'],
+      const palette: Record<State, [string, string, string]> = {
         building: ['#2A1E34', '#E8E4DF', '#d4a96a'],
         success:  ['#1f3a2a', '#E8E4DF', '#5F7A6C'],
         failure:  ['#3a1a22', '#E8E4DF', '#b85a6a'],
@@ -60,7 +65,8 @@ export default defineConfig({
       el.style.color = fg;
       el.style.borderLeft = `3px solid ${accent}`;
       const linkHtml = link ? ` · <a href="${link}" target="_blank" style="color:${accent};text-decoration:underline">view run</a>` : '';
-      el.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:14px;line-height:1.4">${state === 'building' ? '⏳' : state === 'success' ? '✓' : state === 'failure' ? '✗' : '✦'}</span><span style="flex:1">${msg}${linkHtml}</span></div>`;
+      const icon = state === 'building' ? '⏳' : state === 'success' ? '✓' : '✗';
+      el.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:14px;line-height:1.4">${icon}</span><span style="flex:1">${msg}${linkHtml}</span></div>`;
       requestAnimationFrame(() => {
         el!.style.opacity = '1';
         el!.style.transform = 'translateY(0)';
@@ -73,64 +79,54 @@ export default defineConfig({
       el.style.transform = 'translateY(8px)';
     }
 
-    let pollTimer: number | null = null;
-    let lastSeenSha: string | null = null;
+    let lastReportedRunId: number | null = null;
+    let lastSuccessHiddenAt: number = 0;
 
-    async function pollOnce(triggerSha: string | null): Promise<boolean> {
+    async function pollOnce(): Promise<void> {
       try {
-        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/runs?per_page=1&branch=main`);
-        if (!r.ok) return false;
+        const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/runs?per_page=1&branch=main`, { cache: 'no-store' });
+        if (!r.ok) return;
         const j = await r.json();
         const run = j.workflow_runs?.[0];
-        if (!run) return false;
-        if (triggerSha && run.head_sha !== triggerSha && run.status === 'completed' && run.created_at < new Date(Date.now() - 15000).toISOString()) {
-          // Latest run isn't our save's run yet — keep waiting.
-          paint('building', 'Save committed. Waiting for build to start…');
-          return false;
-        }
+        if (!run) { hide(); return; }
+
+        const now = Date.now();
+        const updatedAt = new Date(run.updated_at).getTime();
+        const ageMs = now - updatedAt;
         const url = run.html_url;
-        if (run.status === 'completed') {
-          if (run.conclusion === 'success') {
-            paint('success', `Deploy succeeded — your changes are live at <a href="${SITE_URL}" target="_blank" style="color:inherit;text-decoration:underline">studio-marginalia.pages.dev</a>`, url);
-            window.setTimeout(hide, 10000);
-            return true;
+
+        if (run.status === 'queued') {
+          paint('building', 'Build queued…', url);
+        } else if (run.status === 'in_progress') {
+          paint('building', 'Building &amp; deploying… ~90s', url);
+        } else if (run.status === 'completed') {
+          // Show terminal state for ~30s after completion, then auto-hide.
+          if (run.conclusion === 'success' && ageMs < 30000) {
+            if (lastReportedRunId !== run.id) {
+              paint('success', `Live at <a href="${SITE_URL}" target="_blank" style="color:inherit;text-decoration:underline">studio-marginalia.pages.dev</a>`, url);
+              lastReportedRunId = run.id;
+              lastSuccessHiddenAt = now + 12000;
+            } else if (now > lastSuccessHiddenAt) {
+              hide();
+            }
+          } else if (run.conclusion === 'failure' || run.conclusion === 'cancelled') {
+            paint('failure', `Last deploy ${run.conclusion}. Click for log.`, url);
+          } else if (ageMs > 30000) {
+            hide();
           }
-          paint('failure', `Deploy failed (${run.conclusion}). Check the action log.`, url);
-          return true;
         }
-        if (run.status === 'queued') paint('building', 'Build queued…', url);
-        else if (run.status === 'in_progress') paint('building', 'Building &amp; deploying… ~90s', url);
-        else paint('building', `Build ${run.status}…`, url);
-        return false;
-      } catch {
-        return false;
+      } catch (e) {
+        // CORS / rate-limit / offline — silently skip this tick.
       }
     }
 
-    function startPolling() {
-      if (pollTimer !== null) return;
-      paint('building', 'Save committed. Build starting…');
-      pollTimer = window.setInterval(async () => {
-        const done = await pollOnce(lastSeenSha);
-        if (done) {
-          if (pollTimer !== null) { clearInterval(pollTimer); pollTimer = null; }
-        }
-      }, POLL_MS);
-      // Auto-stop after 5 minutes regardless.
-      window.setTimeout(() => {
-        if (pollTimer !== null) { clearInterval(pollTimer); pollTimer = null; }
-      }, 5 * 60 * 1000);
-    }
+    // Expose for console debugging: smDeployStatus() forces a poll.
+    (window as any).smDeployStatus = pollOnce;
 
-    // Subscribe to save events. Tina emits 'forms:submit:success' on a
-    // successful form submission (which is what triggers the GitHub commit).
-    try {
-      (cms as any).events?.subscribe?.('forms:submit:success', () => {
-        startPolling();
-      });
-    } catch {
-      // ignore if events API not available
-    }
+    // Initial poll immediately so banner reflects current state when admin opens.
+    void pollOnce();
+    // Then poll every POLL_MS while admin is open.
+    window.setInterval(pollOnce, POLL_MS);
 
     return cms;
   },
