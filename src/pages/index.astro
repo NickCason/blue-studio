@@ -16,16 +16,20 @@ const posts = await getAllPosts();
 <Base>
   <div class="reading-room">
     <div class="feed">
-      {posts.map((post) => {
-        switch (post.data.type) {
-          case 'essay': return <EssayCard post={post} />;
-          case 'note':  return <NoteCard post={post} />;
-          case 'quote': return <QuoteCard post={post} />;
-          case 'link':  return <LinkCard post={post} />;
-          case 'photo': return <PhotoCard post={post} />;
-          case 'audio': return <AudioCard post={post} />;
-        }
-      })}
+      {posts.map((post) => (
+        <div class="reveal" data-reveal>
+          {(() => {
+            switch (post.data.type) {
+              case 'essay': return <EssayCard post={post} />;
+              case 'note':  return <NoteCard post={post} />;
+              case 'quote': return <QuoteCard post={post} />;
+              case 'link':  return <LinkCard post={post} />;
+              case 'photo': return <PhotoCard post={post} />;
+              case 'audio': return <AudioCard post={post} />;
+            }
+          })()}
+        </div>
+      ))}
       {posts.length === 0 && <p class="empty serif-italic">Quiet for now. Something soon.</p>}
     </div>
     <aside class="aside">
@@ -57,4 +61,47 @@ const posts = await getAllPosts();
     .reading-room { grid-template-columns: 1fr; gap: 40px; padding: 28px 20px; }
     .aside { border-left: none; border-top: 1px dashed var(--rule-dotted); padding: 32px 0 0 0; }
   }
+  .reveal {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 400ms var(--ease), transform 400ms var(--ease);
+    will-change: opacity, transform;
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
 </style>
+
+<script>
+  function bindReveal() {
+    const targets = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    if (targets.length === 0) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      for (const el of targets) el.classList.add('in');
+      return;
+    }
+    const startedAt = performance.now();
+    let staggerCounter = 0;
+    const STAGGER_MS = 80;
+    const STAGGER_WINDOW_MS = 800;
+
+    const obs = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const el = entry.target as HTMLElement;
+        const sinceLoad = performance.now() - startedAt;
+        const delay = sinceLoad < STAGGER_WINDOW_MS ? staggerCounter++ * STAGGER_MS : 0;
+        window.setTimeout(() => el.classList.add('in'), delay);
+        obs.unobserve(el);
+      }
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+
+    for (const el of targets) obs.observe(el);
+  }
+  bindReveal();
+  document.addEventListener('astro:page-load', bindReveal);
+</script>
