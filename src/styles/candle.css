@@ -34,7 +34,7 @@
 
 .candle__flame {
   position: absolute;
-  left: 50%; top: -8px;
+  left: 50%; top: -5px;
   transform: translateX(-50%);
   width: 5px; height: 9px;
   background: radial-gradient(ellipse at 50% 80%, #fff4c8 0%, #ffe27a 35%, #ff9a55 70%, transparent 90%);
