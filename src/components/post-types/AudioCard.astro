@@ -49,15 +49,41 @@ try {
 </article>
 
 <script>
+  // Helper: a player is "stale" if the audio element errored, has no buffered
+  // data (HAVE_NOTHING), or was flagged for reset by a lifecycle/visibility event.
+  function isStale(audio: HTMLAudioElement, flaggedForReset: boolean): boolean {
+    if (flaggedForReset) return true;
+    if (audio.error != null) return true;
+    if (audio.readyState === 0 /* HAVE_NOTHING */) return true;
+    return false;
+  }
+
+  type PlayerState = {
+    audio: HTMLAudioElement;
+    playBtn: HTMLButtonElement;
+    playIcon: HTMLElement;
+    bars: HTMLDivElement[];
+    waveform: HTMLDivElement;
+    rafId: number;
+    needsReset: boolean;
+    hasEverPlayed: boolean;
+  };
+
+  const players: PlayerState[] = [];
+
   for (const player of document.querySelectorAll<HTMLDivElement>('.player')) {
     const src = (player as HTMLElement).dataset.audioSrc!;
     const audio = new Audio(src);
-    audio.preload = 'metadata';   // need duration up front; tiny payload
+    audio.preload = 'metadata';
     const playBtn = player.querySelector<HTMLButtonElement>('.play')!;
     const playIcon = playBtn.querySelector('i')!;
     const waveform = player.querySelector<HTMLDivElement>('.waveform')!;
     const bars = Array.from(player.querySelectorAll<HTMLDivElement>('.bar'));
-    let rafId = 0;
+    const state: PlayerState = {
+      audio, playBtn, playIcon, bars, waveform,
+      rafId: 0, needsReset: false, hasEverPlayed: false,
+    };
+    players.push(state);
 
     function paintProgress() {
       if (!audio.duration || isNaN(audio.duration)) return;
@@ -67,37 +93,59 @@ try {
     }
     function tick() {
       paintProgress();
-      rafId = requestAnimationFrame(tick);
+      state.rafId = requestAnimationFrame(tick);
     }
     function startTick() {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(tick);
+      cancelAnimationFrame(state.rafId);
+      state.rafId = requestAnimationFrame(tick);
     }
     function stopTick() {
-      cancelAnimationFrame(rafId);
-      rafId = 0;
+      cancelAnimationFrame(state.rafId);
+      state.rafId = 0;
+    }
+    function flashFault() {
+      playBtn.classList.remove('fault');
+      // force reflow so the animation restarts on rapid repeat
+      void playBtn.offsetWidth;
+      playBtn.classList.add('fault');
+      window.setTimeout(() => playBtn.classList.remove('fault'), 600);
     }
 
-    // Drive animation off the audio element's own events — these fire when
-    // playback ACTUALLY starts/stops, not when we ask it to.
-    audio.addEventListener('play',  () => { playIcon.className = 'ph-fill ph-pause'; startTick(); });
-    audio.addEventListener('pause', () => { playIcon.className = 'ph-fill ph-play';  stopTick();  });
+    audio.addEventListener('play',  () => {
+      state.hasEverPlayed = true;
+      state.needsReset = false;
+      playIcon.className = 'ph-fill ph-pause';
+      startTick();
+    });
+    audio.addEventListener('pause', () => { playIcon.className = 'ph-fill ph-play'; stopTick(); });
     audio.addEventListener('ended', () => {
       playIcon.className = 'ph-fill ph-play';
       stopTick();
       bars.forEach((b) => b.classList.remove('played'));
       audio.currentTime = 0;
     });
-    audio.addEventListener('timeupdate', paintProgress);   // backup paint at 4Hz
-    audio.addEventListener('seeked',     paintProgress);
+    audio.addEventListener('error',   () => { state.needsReset = true; });
+    audio.addEventListener('stalled', () => { state.needsReset = true; });
+    audio.addEventListener('abort',   () => { state.needsReset = true; });
+    audio.addEventListener('timeupdate',     paintProgress);
+    audio.addEventListener('seeked',         paintProgress);
     audio.addEventListener('loadedmetadata', paintProgress);
 
-    playBtn.addEventListener('click', () => {
-      if (audio.paused) audio.play().catch(() => { playIcon.className = 'ph-fill ph-play'; });
-      else audio.pause();
+    playBtn.addEventListener('click', async () => {
+      if (!audio.paused) { audio.pause(); return; }
+      try {
+        if (isStale(audio, state.needsReset)) {
+          audio.load();           // resets internal state machine
+          state.needsReset = false;
+        }
+        await audio.play();
+      } catch {
+        state.needsReset = true;  // next click will reload
+        playIcon.className = 'ph-fill ph-play';
+        flashFault();
+      }
     });
 
-    // Click on the waveform to seek.
     waveform.addEventListener('click', (e) => {
       if (!audio.duration || isNaN(audio.duration)) return;
       const rect = waveform.getBoundingClientRect();
@@ -106,6 +154,20 @@ try {
       paintProgress();
     });
   }
+
+  // After backgrounding / device sleep / bfcache restore, mark every player
+  // that has played at least once and is currently paused as needing a reset
+  // before the NEXT play attempt. We don't reset eagerly — we reset lazily on
+  // the next click so we don't fight a player the user is currently using.
+  function flagAllForReset() {
+    for (const p of players) {
+      if (p.hasEverPlayed && p.audio.paused) p.needsReset = true;
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') flagAllForReset();
+  });
+  window.addEventListener('pageshow', flagAllForReset);
 </script>
 
 <style>
@@ -147,5 +209,13 @@ try {
     background: var(--accent);
     opacity: 1;
     box-shadow: 0 0 8px rgba(110,90,138,0.6);
+  }
+  @keyframes sm-fault-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(0.9); box-shadow: 0 0 0 4px rgba(184, 90, 106, 0.35); }
+  }
+  .play.fault { animation: sm-fault-pulse 0.6s var(--ease, ease) 1; }
+  @media (prefers-reduced-motion: reduce) {
+    .play.fault { animation: none; outline: 2px solid var(--np-rose); outline-offset: 2px; }
   }
 </style>
