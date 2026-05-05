@@ -27,7 +27,7 @@ switch (post.data.type) {
   case 'photo': title = `Photo — Studio Marginalia`; description = post.data.caption; break;
 }
 ---
-<Base title={title} description={description} type="article">
+<Base title={title} description={description} type="article" ogImage={`/og/${post.slug}.png`}>
   <div class="page-wrap">
     <BackToJournal />
     {post.data.type === 'essay' && <EssayPage post={post} />}

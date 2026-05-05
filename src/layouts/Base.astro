@@ -13,16 +13,18 @@ import { ClientRouter } from 'astro:transitions';
 interface Props {
   title?: string;
   description?: string;
-  image?: string;
+  ogImage?: string;
   type?: 'website' | 'article';
 }
 const {
   title = 'Studio Marginalia — Nina Pfeiffer',
   description = 'A personal-first journal and a quiet marketing studio. Essays, notes, and voice memos by Nina Pfeiffer.',
-  image = '/og-default.png',
+  ogImage = '/og-default.png',
   type = 'website',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://studio-marginalia.pages.dev').toString();
+const siteUrl = 'https://studio-marginalia.pages.dev';
+const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 ---
 <!doctype html>
 <html lang="en">
@@ -36,11 +38,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://studio-marg
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:type" content={type} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:image" content={fullOgImage} />
+    <meta property="og:type" content={type ?? 'website'} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={new URL(image, canonical).toString()} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={fullOgImage} />
     <script is:inline>
       (function () {
         function getTheme() {
