@@ -1,107 +1,221 @@
 /* Studio Marginalia — TinaCMS admin theme.
  * Loaded at admin boot via tina/config.ts cmsCallback.
- * Selectors target Tina's stable class prefixes (tina-, sidebar-, etc.).
- * If Tina's internals shift in a future version, the public site is unaffected
- * — this stylesheet only restyles /admin/. */
+ *
+ * Tina admin is built with Tailwind utility classes under `body.tina-tailwind`.
+ * We scope every override under `body.tina-tailwind` to win specificity over
+ * the ungrouped Tailwind utilities, and use !important defensively because
+ * some utilities compute color from a CSS variable (--tw-bg-opacity etc.)
+ * that resists naive overrides.
+ *
+ * If a future Tina version changes its utility set, the public site is
+ * unaffected — this stylesheet only loads inside /admin/.
+ */
 
-:root {
-  --sm-bg:        #2A1E34;
-  --sm-bg-soft:   #3a2c46;
-  --sm-fg:        #E8E4DF;
-  --sm-fg-soft:   #c9c1bb;
-  --sm-accent:    #B8A4D6;
-  --sm-accent-fill: #6E5A8A;
-  --sm-rose:      #b85a6a;
-  --sm-moss:      #5F7A6C;
-  --sm-edge:      rgba(232, 228, 223, 0.10);
-  --sm-radius:    10px;
-  --sm-serif:     'Fraunces Variable', Georgia, serif;
-}
+/* ------------ Site palette (mirrors src/styles/tokens.css) ------------ */
+body.tina-tailwind {
+  --sm-bg:           #2A1E34;
+  --sm-bg-elev-1:    #3a2c46;
+  --sm-bg-elev-2:    #44354f;
+  --sm-fg:           #E8E4DF;
+  --sm-fg-soft:      #c9c1bb;
+  --sm-fg-mute:      #9a9088;
+  --sm-accent:       #B8A4D6;
+  --sm-accent-fill:  #6E5A8A;
+  --sm-accent-hover: #8770a8;
+  --sm-edge:         rgba(232, 228, 223, 0.10);
+  --sm-edge-soft:    rgba(232, 228, 223, 0.06);
+  --sm-ink:          #0F0F14;
 
-/* No @font-face declaration — Tina's admin SPA already loads its own font
- * stack and we don't have Fraunces files in /public/. The serif rules below
- * fall through to Georgia (the second name in the stack), which is the
- * intended graceful degradation. If we later host Fraunces locally we can
- * add a single @font-face here without touching anything else. */
-
-/* ---- App chrome ---- */
-html, body, #root, .tina-tailwind {
-  background: var(--sm-bg) !important;
+  font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--sm-bg);
   color: var(--sm-fg);
-  font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
 }
 
-/* ---- Headings ---- */
-h1, h2, h3, h4, .tina-tailwind h1, .tina-tailwind h2, .tina-tailwind h3 {
-  font-family: var(--sm-serif);
-  font-style: italic;
+/* ------------ Shell backgrounds (Tailwind grays Tina uses) ------------ */
+body.tina-tailwind .bg-white       { background-color: var(--sm-bg) !important; }
+body.tina-tailwind .bg-gray-50     { background-color: var(--sm-bg) !important; }
+body.tina-tailwind .bg-gray-100    { background-color: var(--sm-bg-elev-1) !important; }
+body.tina-tailwind .bg-gray-200    { background-color: var(--sm-bg-elev-2) !important; }
+body.tina-tailwind .bg-gray-250    { background-color: var(--sm-bg-elev-2) !important; }
+body.tina-tailwind .bg-gray-300    { background-color: rgba(232, 228, 223, 0.10) !important; }
+
+body.tina-tailwind .bg-accent      { background-color: var(--sm-bg-elev-1) !important; }
+body.tina-tailwind .bg-background  { background-color: var(--sm-bg) !important; }
+body.tina-tailwind .bg-muted       { background-color: var(--sm-bg-elev-1) !important; }
+
+/* ------------ Borders ------------ */
+body.tina-tailwind .border-gray-50,
+body.tina-tailwind .border-gray-100,
+body.tina-tailwind .border-gray-150,
+body.tina-tailwind .border-gray-200,
+body.tina-tailwind .border-gray-300,
+body.tina-tailwind .border-b-gray-200,
+body.tina-tailwind .border-t-gray-200,
+body.tina-tailwind .border-l-gray-200,
+body.tina-tailwind .border-r-gray-200 { border-color: var(--sm-edge) !important; }
+
+body.tina-tailwind .border           { border-color: var(--sm-edge); }
+body.tina-tailwind .border-b-2,
+body.tina-tailwind .border-b         { border-bottom-color: var(--sm-edge); }
+body.tina-tailwind .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+body.tina-tailwind .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--sm-edge) !important;
+}
+
+/* ------------ Text ------------ */
+body.tina-tailwind .text-gray-200  { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-gray-300  { color: var(--sm-fg-soft) !important; }
+body.tina-tailwind .text-gray-400  { color: var(--sm-fg-soft) !important; }
+body.tina-tailwind .text-gray-500  { color: var(--sm-fg-soft) !important; }
+body.tina-tailwind .text-gray-600  { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-gray-700  { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-gray-800  { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-gray-900  { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-black     { color: var(--sm-fg) !important; }
+
+body.tina-tailwind .text-foreground         { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-muted-foreground   { color: var(--sm-fg-soft) !important; }
+
+/* ------------ Brand orange → site amethyst ------------ */
+body.tina-tailwind .bg-tina-orange,
+body.tina-tailwind .bg-orange-500   { background-color: var(--sm-accent-fill) !important; }
+body.tina-tailwind .border-tina-orange,
+body.tina-tailwind .border-orange-500 { border-color: var(--sm-accent-fill) !important; }
+body.tina-tailwind .text-tina-orange,
+body.tina-tailwind .text-orange-500,
+body.tina-tailwind .text-orange-600 { color: var(--sm-accent) !important; }
+body.tina-tailwind .fill-tina-orange,
+body.tina-tailwind .fill-orange-500,
+body.tina-tailwind .fill-orange-600 { fill: var(--sm-accent) !important; }
+body.tina-tailwind .ring-tina-orange,
+body.tina-tailwind .ring-orange-500 { --tw-ring-color: var(--sm-accent-fill) !important; }
+
+/* Logo (Tina wordmark uses fill-current with text-orange-500 / text-gray-600) */
+body.tina-tailwind .fill-current.text-gray-600,
+body.tina-tailwind .fill-current.text-gray-700 { color: var(--sm-fg) !important; }
+
+/* ------------ Blue links / actions also map to amethyst ------------ */
+body.tina-tailwind .text-blue-500,
+body.tina-tailwind .text-blue-600,
+body.tina-tailwind .text-blue-700  { color: var(--sm-accent) !important; }
+body.tina-tailwind .bg-blue-500,
+body.tina-tailwind .bg-blue-600    { background-color: var(--sm-accent-fill) !important; }
+body.tina-tailwind .border-blue-500,
+body.tina-tailwind .border-blue-600 { border-color: var(--sm-accent-fill) !important; }
+
+/* ------------ Headings — site signature: Fraunces italic ------------ */
+body.tina-tailwind h1,
+body.tina-tailwind h2,
+body.tina-tailwind h3,
+body.tina-tailwind h4,
+body.tina-tailwind .font-serif {
+  font-family: 'Fraunces Variable', 'Fraunces', Georgia, serif !important;
+  font-style: italic !important;
   font-variation-settings: 'SOFT' 100, 'opsz' 144;
-  font-weight: 400;
-  color: var(--sm-fg);
-}
-
-/* ---- Sidebar ---- */
-[class*="sidebar"], [class*="Sidebar"] {
-  background: var(--sm-bg) !important;
-  border-right: 1px solid var(--sm-edge) !important;
-}
-[class*="sidebar"] a, [class*="Sidebar"] a {
-  color: var(--sm-fg-soft);
-}
-[class*="sidebar"] a:hover, [class*="sidebar"] a[aria-selected="true"] {
-  color: var(--sm-accent);
-}
-
-/* ---- Inputs ---- */
-input[type="text"], input[type="number"], input[type="search"],
-textarea, select, .tina-tailwind input, .tina-tailwind textarea, .tina-tailwind select {
-  background: rgba(232, 228, 223, 0.04) !important;
-  border: 1px solid var(--sm-edge) !important;
-  border-radius: var(--sm-radius) !important;
+  font-weight: 400 !important;
   color: var(--sm-fg) !important;
-  font-family: inherit;
 }
-input:focus, textarea:focus, select:focus {
+
+body.tina-tailwind .tina-prose { color: var(--sm-fg); }
+body.tina-tailwind .tina-prose h1,
+body.tina-tailwind .tina-prose h2,
+body.tina-tailwind .tina-prose h3 { color: var(--sm-fg); }
+
+/* ------------ Form inputs ------------ */
+body.tina-tailwind input[type="text"],
+body.tina-tailwind input[type="number"],
+body.tina-tailwind input[type="search"],
+body.tina-tailwind input[type="email"],
+body.tina-tailwind input[type="url"],
+body.tina-tailwind input[type="password"],
+body.tina-tailwind input[type="date"],
+body.tina-tailwind input[type="datetime-local"],
+body.tina-tailwind textarea,
+body.tina-tailwind select {
+  background-color: var(--sm-edge-soft) !important;
+  border: 1px solid var(--sm-edge) !important;
+  color: var(--sm-fg) !important;
+  border-radius: 8px !important;
+}
+
+body.tina-tailwind input::placeholder,
+body.tina-tailwind textarea::placeholder { color: var(--sm-fg-mute) !important; opacity: 1; }
+
+body.tina-tailwind input:focus,
+body.tina-tailwind textarea:focus,
+body.tina-tailwind select:focus {
   outline: 2px solid var(--sm-accent-fill) !important;
   outline-offset: 1px;
+  border-color: var(--sm-accent-fill) !important;
 }
 
-/* ---- Buttons ---- */
-button[type="submit"], .tina-tailwind button[type="submit"] {
+/* ------------ Buttons ------------ */
+body.tina-tailwind button[type="submit"] {
   background: var(--sm-accent-fill) !important;
-  color: #0F0F14 !important;
+  color: var(--sm-ink) !important;
   border-radius: 999px !important;
-  font-weight: 600;
+  font-weight: 600 !important;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 11px;
-  box-shadow: 0 0 18px rgba(110,90,138,0.4);
+  font-size: 11px !important;
+  box-shadow: 0 0 18px rgba(110, 90, 138, 0.4);
+  border: none !important;
 }
-button[type="submit"]:hover { background: #8770a8 !important; }
-
-/* ---- Save bar / footer / toolbars ---- */
-[class*="toolbar"], [class*="Toolbar"], [class*="footer"], [class*="Footer"] {
-  background: var(--sm-bg-soft) !important;
-  border-top: 1px solid var(--sm-edge) !important;
+body.tina-tailwind button[type="submit"]:hover {
+  background: var(--sm-accent-hover) !important;
 }
 
-/* ---- Cards / list rows ---- */
-[class*="card"], [class*="Card"], [class*="row"], [class*="Row"] {
-  background: rgba(110, 90, 138, 0.08);
-  border: 1px solid var(--sm-edge);
-  border-radius: var(--sm-radius);
-}
-[class*="card"]:hover, [class*="Card"]:hover {
-  border-color: var(--sm-accent-fill);
+body.tina-tailwind .border-tina-orange.text-tina-orange {
+  background: transparent !important;
+  border-color: var(--sm-accent-fill) !important;
+  color: var(--sm-accent) !important;
 }
 
-/* ---- Field labels ---- */
-label, .tina-tailwind label {
+body.tina-tailwind .hover\:bg-gray-50:hover,
+body.tina-tailwind .hover\:bg-gray-100:hover,
+body.tina-tailwind .hover\:bg-gray-200:hover {
+  background-color: var(--sm-bg-elev-1) !important;
+}
+
+/* ------------ Sidebar nav ------------ */
+body.tina-tailwind a:hover,
+body.tina-tailwind button:hover  { color: var(--sm-accent); }
+
+/* ------------ Field labels ------------ */
+body.tina-tailwind label {
   color: var(--sm-fg-soft) !important;
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 11px !important;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-/* ---- Existing deploy banner is fine — leave it alone ---- */
-#sm-deploy-banner { /* untouched */ }
+/* ------------ Modals / popovers / tooltips ------------ */
+body.tina-tailwind [role="dialog"],
+body.tina-tailwind [role="menu"],
+body.tina-tailwind [role="listbox"],
+body.tina-tailwind [data-radix-popper-content-wrapper] > * {
+  background-color: var(--sm-bg-elev-1) !important;
+  color: var(--sm-fg) !important;
+  border: 1px solid var(--sm-edge);
+}
+
+/* ------------ Shadows ------------ */
+body.tina-tailwind .shadow,
+body.tina-tailwind .shadow-md,
+body.tina-tailwind .shadow-lg {
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.5),
+              0 4px 8px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ------------ Scrollbars ------------ */
+body.tina-tailwind *::-webkit-scrollbar { width: 8px; height: 8px; }
+body.tina-tailwind *::-webkit-scrollbar-track { background: var(--sm-bg); }
+body.tina-tailwind *::-webkit-scrollbar-thumb {
+  background: rgba(232, 228, 223, 0.18);
+  border-radius: 4px;
+}
+body.tina-tailwind *::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 228, 223, 0.28);
+}
+
+/* ------------ Deploy banner sets its colors inline; no rules target it. ------------ */
