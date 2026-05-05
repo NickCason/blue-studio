@@ -35,6 +35,15 @@ export default defineConfig({
     if ((window as any).__smDeployBannerInit) return cms;
     (window as any).__smDeployBannerInit = true;
 
+    // Inject site-themed admin stylesheet exactly once.
+    if (!document.getElementById('sm-admin-theme')) {
+      const link = document.createElement('link');
+      link.id = 'sm-admin-theme';
+      link.rel = 'stylesheet';
+      link.href = '/admin-theme.css';
+      document.head.appendChild(link);
+    }
+
     const ID = 'sm-deploy-banner';
     type State = 'building' | 'success' | 'failure';
 

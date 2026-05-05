@@ -1,0 +1,107 @@
+/* Studio Marginalia — TinaCMS admin theme.
+ * Loaded at admin boot via tina/config.ts cmsCallback.
+ * Selectors target Tina's stable class prefixes (tina-, sidebar-, etc.).
+ * If Tina's internals shift in a future version, the public site is unaffected
+ * — this stylesheet only restyles /admin/. */
+
+:root {
+  --sm-bg:        #2A1E34;
+  --sm-bg-soft:   #3a2c46;
+  --sm-fg:        #E8E4DF;
+  --sm-fg-soft:   #c9c1bb;
+  --sm-accent:    #B8A4D6;
+  --sm-accent-fill: #6E5A8A;
+  --sm-rose:      #b85a6a;
+  --sm-moss:      #5F7A6C;
+  --sm-edge:      rgba(232, 228, 223, 0.10);
+  --sm-radius:    10px;
+  --sm-serif:     'Fraunces Variable', Georgia, serif;
+}
+
+/* No @font-face declaration — Tina's admin SPA already loads its own font
+ * stack and we don't have Fraunces files in /public/. The serif rules below
+ * fall through to Georgia (the second name in the stack), which is the
+ * intended graceful degradation. If we later host Fraunces locally we can
+ * add a single @font-face here without touching anything else. */
+
+/* ---- App chrome ---- */
+html, body, #root, .tina-tailwind {
+  background: var(--sm-bg) !important;
+  color: var(--sm-fg);
+  font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
+}
+
+/* ---- Headings ---- */
+h1, h2, h3, h4, .tina-tailwind h1, .tina-tailwind h2, .tina-tailwind h3 {
+  font-family: var(--sm-serif);
+  font-style: italic;
+  font-variation-settings: 'SOFT' 100, 'opsz' 144;
+  font-weight: 400;
+  color: var(--sm-fg);
+}
+
+/* ---- Sidebar ---- */
+[class*="sidebar"], [class*="Sidebar"] {
+  background: var(--sm-bg) !important;
+  border-right: 1px solid var(--sm-edge) !important;
+}
+[class*="sidebar"] a, [class*="Sidebar"] a {
+  color: var(--sm-fg-soft);
+}
+[class*="sidebar"] a:hover, [class*="sidebar"] a[aria-selected="true"] {
+  color: var(--sm-accent);
+}
+
+/* ---- Inputs ---- */
+input[type="text"], input[type="number"], input[type="search"],
+textarea, select, .tina-tailwind input, .tina-tailwind textarea, .tina-tailwind select {
+  background: rgba(232, 228, 223, 0.04) !important;
+  border: 1px solid var(--sm-edge) !important;
+  border-radius: var(--sm-radius) !important;
+  color: var(--sm-fg) !important;
+  font-family: inherit;
+}
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--sm-accent-fill) !important;
+  outline-offset: 1px;
+}
+
+/* ---- Buttons ---- */
+button[type="submit"], .tina-tailwind button[type="submit"] {
+  background: var(--sm-accent-fill) !important;
+  color: #0F0F14 !important;
+  border-radius: 999px !important;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 11px;
+  box-shadow: 0 0 18px rgba(110,90,138,0.4);
+}
+button[type="submit"]:hover { background: #8770a8 !important; }
+
+/* ---- Save bar / footer / toolbars ---- */
+[class*="toolbar"], [class*="Toolbar"], [class*="footer"], [class*="Footer"] {
+  background: var(--sm-bg-soft) !important;
+  border-top: 1px solid var(--sm-edge) !important;
+}
+
+/* ---- Cards / list rows ---- */
+[class*="card"], [class*="Card"], [class*="row"], [class*="Row"] {
+  background: rgba(110, 90, 138, 0.08);
+  border: 1px solid var(--sm-edge);
+  border-radius: var(--sm-radius);
+}
+[class*="card"]:hover, [class*="Card"]:hover {
+  border-color: var(--sm-accent-fill);
+}
+
+/* ---- Field labels ---- */
+label, .tina-tailwind label {
+  color: var(--sm-fg-soft) !important;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ---- Existing deploy banner is fine — leave it alone ---- */
+#sm-deploy-banner { /* untouched */ }
