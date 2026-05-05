@@ -62,6 +62,21 @@ body.tina-tailwind .bg-accent      { background-color: var(--sm-bg-elev-1) !impo
 body.tina-tailwind .bg-background  { background-color: var(--sm-bg) !important; }
 body.tina-tailwind .bg-muted       { background-color: var(--sm-bg-elev-1) !important; }
 
+/* ------------ Tailwind gradient stops (the dashboard uses
+ *   bg-gradient-to-b from-gray-50/50 to-gray-50
+ * which writes through --tw-gradient-from / --tw-gradient-to vars,
+ * NOT background-color — so bg-gray-50 overrides above don't apply.) */
+body.tina-tailwind [class*="from-gray-"] {
+  --tw-gradient-from: var(--sm-bg) !important;
+  --tw-gradient-stops: var(--sm-bg), var(--tw-gradient-to, var(--sm-bg)) !important;
+}
+body.tina-tailwind [class*="to-gray-"] {
+  --tw-gradient-to: var(--sm-bg) !important;
+}
+body.tina-tailwind [class*="via-gray-"] {
+  --tw-gradient-stops: var(--tw-gradient-from), var(--sm-bg), var(--tw-gradient-to) !important;
+}
+
 /* ------------ Arbitrary-value Tailwind classes used by the dashboard ------------ */
 /* Tina ships hex values inline as Tailwind arbitrary-value utilities, e.g.
  * bg-[#FFF] for the dashboard root. They compile to escaped selectors. */
