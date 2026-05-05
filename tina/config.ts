@@ -145,31 +145,24 @@ export default defineConfig({
     // Expose for console debugging: smDeployStatus() forces a poll.
     (window as any).smDeployStatus = pollOnce;
 
-    // Optimistic banner — show immediately on Tina save without waiting for
-    // Actions API to surface the run. We intercept fetch() and only trigger
-    // on GraphQL MUTATIONS (writes) to Tina Cloud — not regular queries.
-    const origFetch = window.fetch.bind(window);
-    window.fetch = ((input: any, init?: any) => {
-      try {
-        const url = typeof input === 'string' ? input : (input?.url ?? '');
-        const method = (init?.method || (typeof input === 'object' && input?.method) || 'GET').toUpperCase();
-        if (url.includes('content.tinajs.io') && method === 'POST' && init?.body) {
-          const body = typeof init.body === 'string' ? init.body : '';
-          // Only trigger on actual save operations — GraphQL mutations or
-          // Tina's documented save mutation names.
-          const isMutation = /\bmutation\b/.test(body) || /addPendingDocument|updateDocument|createDocument/.test(body);
-          if (isMutation) {
-            paint('building', 'Save committed. Watching for build…');
-            let i = 0;
-            const burst = window.setInterval(() => {
-              void pollOnce();
-              if (++i >= 10) window.clearInterval(burst);
-            }, 3000);
-          }
-        }
-      } catch { /* ignore */ }
-      return origFetch(input, init);
-    }) as typeof fetch;
+    // Listen for clicks on Tina's Save button — a reliable signal that the
+    // user just initiated a save (no false positives from page-load mutations).
+    // Tina's save button has text content "Save" within the admin chrome.
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+      const btn = target.closest('button');
+      if (!btn) return;
+      const text = (btn.textContent || '').trim().toLowerCase();
+      if (text === 'save' || text === 'save and continue' || text.startsWith('save ')) {
+        // Burst poll for the next ~30s to catch the workflow as soon as GitHub registers it.
+        let i = 0;
+        const burst = window.setInterval(() => {
+          void pollOnce();
+          if (++i >= 10) window.clearInterval(burst);
+        }, 3000);
+      }
+    }, true);
 
     // Initial poll so banner reflects current state when admin opens.
     void pollOnce();
