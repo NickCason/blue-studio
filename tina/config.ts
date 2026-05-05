@@ -6,7 +6,9 @@ import { defineConfig } from 'tinacms';
 
 const GH_REPO = 'NickCason/studio-marginalia';
 const SITE_URL = 'https://studio-marginalia.pages.dev';
-const POLL_MS = 4000;
+const POLL_MS = 2000;
+const BURST_MS = 1500;
+const BURST_TICKS = 12;
 
 export default defineConfig({
   branch: 'main',
@@ -185,12 +187,12 @@ export default defineConfig({
       if (!btn) return;
       const text = (btn.textContent || '').trim().toLowerCase();
       if (text === 'save' || text === 'save and continue' || text.startsWith('save ')) {
-        // Burst poll for the next ~30s to catch the workflow as soon as GitHub registers it.
+        // Burst poll: pick up the new workflow run as soon as it appears.
         let i = 0;
         const burst = window.setInterval(() => {
           void pollOnce();
-          if (++i >= 10) window.clearInterval(burst);
-        }, 3000);
+          if (++i >= BURST_TICKS) window.clearInterval(burst);
+        }, BURST_MS);
       }
     }, true);
 
