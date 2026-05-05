@@ -7,6 +7,7 @@ import QuotePage from '~/components/post-permalinks/QuotePage.astro';
 import LinkPage from '~/components/post-permalinks/LinkPage.astro';
 import PhotoPage from '~/components/post-permalinks/PhotoPage.astro';
 import AudioPage from '~/components/post-permalinks/AudioPage.astro';
+import BackToJournal from '~/components/post-permalinks/BackToJournal.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -28,6 +29,7 @@ switch (post.data.type) {
 ---
 <Base title={title} description={description} type="article">
   <div class="page-wrap">
+    <BackToJournal />
     {post.data.type === 'essay' && <EssayPage post={post} />}
     {post.data.type === 'note'  && <NotePage  post={post} />}
     {post.data.type === 'quote' && <QuotePage post={post} />}

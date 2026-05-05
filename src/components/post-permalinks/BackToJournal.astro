@@ -1,0 +1,26 @@
+---
+// Small "← Back to journal" link rendered above every post permalink.
+// Plain href, not history.back(), because users may arrive via direct link,
+// RSS, or share URL.
+---
+<a href="/" class="back-to-journal">
+  <i class="ph-bold ph-arrow-left" aria-hidden="true"></i>
+  <span>Back to journal</span>
+</a>
+<style>
+  .back-to-journal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-meta);
+    letter-spacing: var(--tracking-meta);
+    text-transform: uppercase;
+    color: var(--accent-text);
+    margin: 32px 0 8px;
+    padding: 6px 0;
+    opacity: 0.85;
+    transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  }
+  .back-to-journal:hover { opacity: 1; transform: translateX(-2px); }
+  .back-to-journal i { font-size: 12px; }
+</style>
