@@ -26,6 +26,25 @@ body.tina-tailwind {
   --sm-edge-soft:    rgba(232, 228, 223, 0.06);
   --sm-ink:          #0F0F14;
 
+  /* Override Tina's own design-system tokens. Tina uses --tina-color-grey-N
+   * as a light-to-dark ramp (0 = white, 10 = ink). We invert: 0 = our bg,
+   * 10 = our fg. Components consuming these vars flip without per-class work. */
+  --tina-color-grey-0:  #2A1E34;
+  --tina-color-grey-1:  #3a2c46;
+  --tina-color-grey-2:  #44354f;
+  --tina-color-grey-3:  rgba(232, 228, 223, 0.12);
+  --tina-color-grey-4:  #9a9088;
+  --tina-color-grey-5:  #c9c1bb;
+  --tina-color-grey-6:  #d6cfc8;
+  --tina-color-grey-7:  #E8E4DF;
+  --tina-color-grey-8:  #E8E4DF;
+  --tina-color-grey-9:  #E8E4DF;
+  --tina-color-grey-10: #E8E4DF;
+
+  --tina-color-primary:       #6E5A8A;
+  --tina-color-primary-light: #8770a8;
+  --tina-color-primary-dark:  #5a4870;
+
   font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
   background: var(--sm-bg);
   color: var(--sm-fg);
@@ -42,6 +61,26 @@ body.tina-tailwind .bg-gray-300    { background-color: rgba(232, 228, 223, 0.10)
 body.tina-tailwind .bg-accent      { background-color: var(--sm-bg-elev-1) !important; }
 body.tina-tailwind .bg-background  { background-color: var(--sm-bg) !important; }
 body.tina-tailwind .bg-muted       { background-color: var(--sm-bg-elev-1) !important; }
+
+/* ------------ Arbitrary-value Tailwind classes used by the dashboard ------------ */
+/* Tina ships hex values inline as Tailwind arbitrary-value utilities, e.g.
+ * bg-[#FFF] for the dashboard root. They compile to escaped selectors. */
+body.tina-tailwind .bg-\[\#FFF\],
+body.tina-tailwind .bg-\[\#FFFFFF\],
+body.tina-tailwind .bg-\[\#fff\]      { background-color: var(--sm-bg) !important; }
+body.tina-tailwind .bg-\[\#F1F5F9\],
+body.tina-tailwind .bg-\[\#f8fafc\]   { background-color: var(--sm-bg-elev-1) !important; }
+body.tina-tailwind .bg-\[\#E2E8F0\]   { background-color: var(--sm-bg-elev-2) !important; }
+body.tina-tailwind .bg-\[\#FFF8F6\],
+body.tina-tailwind .bg-\[\#FFEBE5\]   { background-color: var(--sm-bg-elev-1) !important; }
+
+body.tina-tailwind .text-\[\#0F172A\] { color: var(--sm-fg) !important; }
+body.tina-tailwind .text-\[\#504E5E\],
+body.tina-tailwind .text-\[\#64748B\] { color: var(--sm-fg-soft) !important; }
+body.tina-tailwind .text-\[\#1D4ED8\] { color: var(--sm-accent) !important; }
+
+body.tina-tailwind .border-\[\#CBD5E1\],
+body.tina-tailwind .border-\[\#efefef\] { border-color: var(--sm-edge) !important; }
 
 /* ------------ Borders ------------ */
 body.tina-tailwind .border-gray-50,
