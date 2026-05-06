@@ -252,4 +252,209 @@
       homeCats[n] = startHomeCat(n, hostEl);
     }
   }
+
+  // ============================================================
+  // localStorage — which cat (if any) is currently out
+  // ============================================================
+  const STORAGE_KEY = 'sm-deskcat-active';
+  function getActiveCat(): number | null {
+    try { const v = localStorage.getItem(STORAGE_KEY); const n = v ? parseInt(v, 10) : NaN; return (n >= 1 && n <= 6) ? n : null; }
+    catch (e) { return null; }
+  }
+  function setActiveCat(n: number | null) {
+    try { if (n == null) localStorage.removeItem(STORAGE_KEY); else localStorage.setItem(STORAGE_KEY, String(n)); }
+    catch (e) {}
+  }
+
+  // ============================================================
+  // Out-cat — full FSM + walk engine
+  // ============================================================
+  type OutState = 'sit' | 'idle' | 'groom1' | 'groom2' | 'stretch' | 'walk' | 'lay' | 'sleep1' | 'sleep2' | 'meow';
+
+  const OUT_STATES: Record<OutState, {
+    anim: AnimName;
+    hold?: [number, number];
+    loops?: [number, number] | number;
+    motion?: { distance: [number, number]; speedPxPerSec: number };
+  }> = {
+    sit:     { anim: 'Sitting',    hold: [1500, 4000] },
+    idle:    { anim: 'Idle',       loops: [3, 6] },
+    groom1:  { anim: 'Licking 1',  loops: [3, 5] },
+    groom2:  { anim: 'Licking 2',  loops: [2, 4] },
+    stretch: { anim: 'Stretching', loops: 1 },
+    walk:    { anim: 'Walk',       motion: { distance: [80, 220], speedPxPerSec: 60 } },
+    lay:     { anim: 'Laying',     loops: [2, 4] },
+    sleep1:  { anim: 'Sleeping1',  hold: [4000, 12000] },
+    sleep2:  { anim: 'Sleeping2',  hold: [3000, 8000] },
+    meow:    { anim: 'Meow',       loops: 1 },
+  };
+
+  const OUT_TRANSITIONS: Record<OutState, Partial<Record<OutState, number>>> = {
+    sit:     { idle: 6, groom1: 2, groom2: 2, stretch: 1, walk: 2, lay: 1, meow: 1 },
+    idle:    { sit: 1, idle: 2, groom1: 2, groom2: 1, walk: 2, lay: 1, stretch: 1 },
+    groom1:  { idle: 4, groom2: 2, sit: 1 },
+    groom2:  { idle: 4, groom1: 1, sit: 1 },
+    stretch: { idle: 3, walk: 2, lay: 1, sit: 1 },
+    walk:    { idle: 4, sit: 2, groom1: 1, walk: 1 },
+    lay:     { sleep1: 5, lay: 1, sit: 1 },
+    sleep1:  { sleep2: 4, lay: 2, sit: 1 },
+    sleep2:  { sleep1: 3, stretch: 2 },
+    meow:    { idle: 5, sit: 1 },
+  };
+
+  const STAGE_PADDING_X = 40;
+  const outHost = document.getElementById('deskcat-out-host')!;
+  const outSprite = document.getElementById('deskcat-out-sprite')! as HTMLElement;
+  const outPlayer = makeSpritePlayer(outSprite, OUT_SCALE);
+
+  let outCatN: number | null = null;
+  let outState: OutState = 'sit';
+  let outMotionRAF: number | null = null;
+  let outScheduling = false;
+  let outFacing: 1 | -1 = 1;
+
+  function getStageWidth(): number { return window.innerWidth; }
+  function getCatWidth(): number { return FRAME * OUT_SCALE; }
+
+  function setOutFacing(dir: 1 | -1) {
+    outFacing = dir;
+    outSprite.classList.toggle('flipped', dir === -1);
+  }
+  function cancelOutMotion() { if (outMotionRAF != null) { cancelAnimationFrame(outMotionRAF); outMotionRAF = null; } }
+  function showOut(visible: boolean) { outHost.style.display = visible ? 'block' : 'none'; }
+
+  function walkTo(targetX: number, speedPxPerSec: number, onDone?: () => void) {
+    cancelOutMotion();
+    const startX = parseFloat(outHost.style.left) || 0;
+    const distance = Math.abs(targetX - startX);
+    const direction: 1 | -1 = targetX > startX ? 1 : -1;
+    setOutFacing(direction);
+    const durationMs = (distance / speedPxPerSec) * 1000;
+    const startTime = performance.now();
+    function step(now: number) {
+      const t = Math.min(1, (now - startTime) / durationMs);
+      outHost.style.left = `${startX + (targetX - startX) * t}px`;
+      if (t < 1) outMotionRAF = requestAnimationFrame(step);
+      else { outMotionRAF = null; if (onDone) onDone(); }
+    }
+    outMotionRAF = requestAnimationFrame(step);
+  }
+
+  function pickWalkTarget(currentX: number, distRange: [number, number]): number {
+    const stageW = getStageWidth();
+    const catW = getCatWidth();
+    const minX = STAGE_PADDING_X;
+    const maxX = stageW - catW - STAGE_PADDING_X;
+    for (let i = 0; i < 8; i++) {
+      const dist = rand(distRange[0], distRange[1]);
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      const t = currentX + dir * dist;
+      if (t >= minX && t <= maxX) return t;
+    }
+    return Math.max(minX, Math.min(maxX, currentX < (minX + maxX) / 2 ? maxX - 50 : minX + 50));
+  }
+
+  function setOutState(name: OutState) {
+    outState = name;
+    enterOutState(name);
+  }
+  function enterOutState(name: OutState) {
+    if (outCatN == null) return;
+    const def = OUT_STATES[name];
+    if (def.motion) {
+      const currentX = parseFloat(outHost.style.left) || 0;
+      const target = pickWalkTarget(currentX, def.motion.distance);
+      const distance = Math.abs(target - currentX);
+      const meta = ANIMS[def.anim];
+      const cycleMs = (meta.frames / meta.fps) * 1000;
+      const durationMs = (distance / def.motion.speedPxPerSec) * 1000;
+      const loops = Math.max(1, Math.round(durationMs / cycleMs));
+      walkTo(target, def.motion.speedPxPerSec, () => { if (outScheduling) advanceOut(); });
+      outPlayer.play(outCatN, def.anim, { loops });
+      return;
+    }
+    if (def.hold) {
+      const ms = rand(def.hold[0], def.hold[1]);
+      outPlayer.play(outCatN, def.anim, { holdMs: ms }, () => { if (outScheduling) advanceOut(); });
+      return;
+    }
+    if (def.loops) {
+      const loops = Array.isArray(def.loops) ? randInt(def.loops[0], def.loops[1]) : def.loops;
+      outPlayer.play(outCatN, def.anim, { loops }, () => { if (outScheduling) advanceOut(); });
+      return;
+    }
+  }
+  function advanceOut() {
+    const next = pickWeighted(OUT_TRANSITIONS[outState] as Record<OutState, number>);
+    setOutState(next);
+  }
+
+  // ============================================================
+  // Release / send-home — orchestrates the visible state changes
+  // ============================================================
+  function getBedCenterX(catN: number): number {
+    const slot = document.querySelector<HTMLElement>(`.deskcat-slot[data-cat-id="${catN}"]`);
+    if (!slot) return getStageWidth() / 2;
+    const rect = slot.getBoundingClientRect();
+    return rect.left + rect.width / 2;
+  }
+
+  function sendCurrentHome(onArrived?: () => void) {
+    if (outCatN == null) { if (onArrived) onArrived(); return; }
+    const catN = outCatN;
+    const targetCenter = getBedCenterX(catN);
+    const targetLeft = targetCenter - getCatWidth() / 2;
+    outScheduling = false;
+    cancelOutMotion();
+    outPlayer.play(catN, 'Walk', { loops: 99 });
+    walkTo(targetLeft, 80, () => {
+      showOut(false);
+      outCatN = null;
+      if (!reducedMotion) {
+        const hostEl = document.querySelector<HTMLElement>(`.deskcat-home-sprite[data-cat-id="${catN}"]`);
+        if (hostEl) homeCats[catN] = startHomeCat(catN, hostEl);
+      }
+      if (onArrived) onArrived();
+    });
+  }
+
+  function releaseCat(catN: number) {
+    if (homeCats[catN]) { homeCats[catN].stopAndPark(); delete homeCats[catN]; }
+
+    const bedX = getBedCenterX(catN) - getCatWidth() / 2;
+    outHost.style.left = `${bedX}px`;
+    setOutFacing(Math.random() < 0.5 ? -1 : 1);
+    outCatN = catN;
+    showOut(true);
+
+    outScheduling = true;
+    outPlayer.play(catN, 'Stretching', { loops: 1 }, () => {
+      if (outCatN !== catN) return;
+      setOutState('idle');
+    });
+    setActiveCat(catN);
+  }
+
+  function handleBedClick(catN: number) {
+    if (outCatN === catN) {
+      sendCurrentHome();
+      setActiveCat(null);
+      return;
+    }
+    if (outCatN != null) {
+      sendCurrentHome();
+      releaseCat(catN);
+      return;
+    }
+    releaseCat(catN);
+  }
+
+  document.querySelectorAll<HTMLElement>('.deskcat-slot').forEach((slot) => {
+    const id = parseInt(slot.dataset.catId || '0', 10);
+    if (!id) return;
+    slot.addEventListener('click', () => handleBedClick(id));
+  });
+  outHost.addEventListener('click', () => {
+    if (outCatN != null) { sendCurrentHome(); setActiveCat(null); }
+  });
 </script>
