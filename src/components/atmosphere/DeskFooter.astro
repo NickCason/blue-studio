@@ -1,0 +1,98 @@
+---
+// DeskFooter — sticky footer with 6 cat beds + persistent desk-companion cat.
+// Spec: docs/superpowers/specs/2026-05-06-deskcat-footer-design.md
+---
+
+<aside id="deskcat-footer" class="deskcat-footer" aria-hidden="true">
+  <div class="deskcat-ground"></div>
+  <div class="deskcat-row">
+    {[1, 2, 3, 4, 5, 6].map((n) => (
+      <div class="deskcat-slot" data-cat-id={n}>
+        <div class="deskcat-bed" data-bed-variant={n}></div>
+        <div class="deskcat-home-sprite" data-cat-id={n}></div>
+      </div>
+    ))}
+  </div>
+  <div class="deskcat-out-host" id="deskcat-out-host" aria-hidden="true">
+    <div class="deskcat-out-sprite" id="deskcat-out-sprite"></div>
+  </div>
+</aside>
+
+<style is:global>
+  body { padding-bottom: 160px; }
+</style>
+
+<style>
+  .deskcat-footer {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 140px;
+    z-index: 50;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.10) 60%, rgba(0,0,0,0.20) 100%);
+    border-top: 1px solid var(--border-soft, rgba(255,255,255,0.08));
+    backdrop-filter: blur(2px);
+  }
+  .deskcat-ground {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 12px;
+    background: linear-gradient(180deg, rgba(214,163,92,0.10) 0%, rgba(214,163,92,0.02) 100%);
+    border-top: 1px solid rgba(214,163,92,0.18);
+    pointer-events: none;
+  }
+  .deskcat-row {
+    position: relative;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    gap: 16px;
+    padding: 0 24px 12px;
+  }
+  .deskcat-slot {
+    position: relative;
+    width: 112px;
+    height: 112px;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .deskcat-bed {
+    position: absolute;
+    inset: 0;
+    background-image: url('/sprites/furniture/cat-beds.png');
+    background-repeat: no-repeat;
+    background-size: 448px 112px;
+    image-rendering: pixelated;
+  }
+  .deskcat-bed[data-bed-variant="1"] { background-position:    0px 0; }
+  .deskcat-bed[data-bed-variant="2"] { background-position: -112px 0; }
+  .deskcat-bed[data-bed-variant="3"] { background-position: -224px 0; }
+  .deskcat-bed[data-bed-variant="4"] { background-position: -336px 0; }
+  .deskcat-bed[data-bed-variant="5"] { background-position:    0px 0; filter: hue-rotate(45deg) saturate(0.95); }
+  .deskcat-bed[data-bed-variant="6"] { background-position: -112px 0; filter: hue-rotate(-45deg) saturate(0.95); }
+  .deskcat-home-sprite {
+    position: absolute;
+    left: 50%; bottom: 22px;
+    width: 100px; height: 100px;
+    transform: translateX(-50%);
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+  }
+  .deskcat-out-host {
+    position: fixed;
+    bottom: 12px;
+    z-index: 51;
+    pointer-events: auto;
+    cursor: pointer;
+    display: none;
+    will-change: left;
+  }
+  .deskcat-out-sprite {
+    width: 150px; height: 150px;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    transform-origin: center bottom;
+  }
+  .deskcat-out-sprite.flipped { transform: scaleX(-1); }
+</style>

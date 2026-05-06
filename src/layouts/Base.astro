@@ -8,6 +8,7 @@ import Footer from '~/components/layout/Footer.astro';
 import Sparkles from '~/components/atmosphere/Sparkles.astro';
 import GlowStage from '~/components/atmosphere/GlowStage.astro';
 import PhotoLightbox from '~/components/PhotoLightbox.astro';
+import DeskFooter from '~/components/atmosphere/DeskFooter.astro';
 import { ClientRouter } from 'astro:transitions';
 
 interface Props {
@@ -83,6 +84,7 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
       <Footer />
     </GlowStage>
     <PhotoLightbox transition:persist />
+    <DeskFooter transition:persist />
     <style is:global>
       .page { min-height: 100vh; }
       main { position: relative; z-index: 2; }
