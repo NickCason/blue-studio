@@ -457,4 +457,39 @@
   outHost.addEventListener('click', () => {
     if (outCatN != null) { sendCurrentHome(); setActiveCat(null); }
   });
+
+  // ============================================================
+  // Restore on load — saved cat arrives from opposite side of screen
+  // ============================================================
+  function arriveCat(catN: number) {
+    if (homeCats[catN]) { homeCats[catN].stopAndPark(); delete homeCats[catN]; }
+
+    const homeCenter = getBedCenterX(catN);
+    const stageW = getStageWidth();
+    const catW = getCatWidth();
+    const homeOnLeft = homeCenter < stageW / 2;
+    // Start off-screen on the side OPPOSITE home
+    const startX = homeOnLeft ? stageW + 20 : -catW - 20;
+    // Walk to a wandering position on the side opposite home
+    const targetX = homeOnLeft ? Math.round(stageW * 0.65) - catW / 2 : Math.round(stageW * 0.35) - catW / 2;
+
+    outHost.style.left = `${startX}px`;
+    setOutFacing(homeOnLeft ? -1 : 1);  // face inward
+    outCatN = catN;
+    showOut(true);
+    outScheduling = false;
+
+    walkTo(targetX, 70, () => {
+      if (outCatN !== catN) return;
+      outScheduling = true;
+      setOutState('idle');
+    });
+    outPlayer.play(catN, 'Walk', { loops: 99 });
+  }
+
+  // Run restore once on init — defer one frame so layout is settled
+  const savedCat = getActiveCat();
+  if (savedCat != null && !reducedMotion) {
+    requestAnimationFrame(() => arriveCat(savedCat));
+  }
 </script>
