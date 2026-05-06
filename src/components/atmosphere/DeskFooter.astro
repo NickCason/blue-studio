@@ -69,8 +69,18 @@
   .deskcat-bed[data-bed-variant="2"] { background-position: -112px 0; }
   .deskcat-bed[data-bed-variant="3"] { background-position: -224px 0; }
   .deskcat-bed[data-bed-variant="4"] { background-position: -336px 0; }
-  .deskcat-bed[data-bed-variant="5"] { background-position:    0px 0; filter: hue-rotate(45deg) saturate(0.95); }
-  .deskcat-bed[data-bed-variant="6"] { background-position: -112px 0; filter: hue-rotate(-45deg) saturate(0.95); }
+  .deskcat-bed[data-bed-variant="5"] {
+    background-position: 0px 0;
+    filter: hue-rotate(45deg) saturate(0.95)
+            drop-shadow(0 0 3px var(--deskbed-glow))
+            drop-shadow(0 1px 2px var(--deskbed-shadow));
+  }
+  .deskcat-bed[data-bed-variant="6"] {
+    background-position: -112px 0;
+    filter: hue-rotate(-45deg) saturate(0.95)
+            drop-shadow(0 0 3px var(--deskbed-glow))
+            drop-shadow(0 1px 2px var(--deskbed-shadow));
+  }
   .deskcat-home-sprite {
     position: absolute;
     left: 50%; bottom: 22px;
@@ -95,6 +105,26 @@
     transform-origin: center bottom;
   }
   .deskcat-out-sprite.flipped { transform: scaleX(-1); }
+  :root {
+    --deskcat-glow: rgba(214, 163, 92, 0.32);
+    --deskcat-shadow: rgba(0, 0, 0, 0.45);
+    --deskbed-glow: rgba(214, 163, 92, 0.22);
+    --deskbed-shadow: rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --deskcat-glow: rgba(255, 245, 220, 0.55);
+    --deskcat-shadow: rgba(40, 30, 20, 0.18);
+    --deskbed-glow: rgba(255, 245, 220, 0.35);
+    --deskbed-shadow: rgba(40, 30, 20, 0.14);
+  }
+  .deskcat-home-sprite, .deskcat-out-sprite {
+    filter: drop-shadow(0 0 6px var(--deskcat-glow))
+            drop-shadow(0 2px 3px var(--deskcat-shadow));
+  }
+  .deskcat-bed {
+    filter: drop-shadow(0 0 3px var(--deskbed-glow))
+            drop-shadow(0 1px 2px var(--deskbed-shadow));
+  }
 </style>
 
 <script>
@@ -492,4 +522,31 @@
   if (savedCat != null && !reducedMotion) {
     requestAnimationFrame(() => arriveCat(savedCat));
   }
+
+  // ============================================================
+  // Theme reaction — out-cat stretches when candle toggles
+  // ============================================================
+  function triggerThemeReaction() {
+    if (outCatN == null) return;          // home cats ignore
+    if (reducedMotion) return;
+    const catN = outCatN;
+    outScheduling = false;
+    cancelOutMotion();
+    outPlayer.play(catN, 'Stretching', { loops: 1 }, () => {
+      if (outCatN !== catN) return;
+      outScheduling = true;
+      setOutState('idle');
+    });
+  }
+
+  // Watch for data-theme changes on <html>
+  const themeObserver = new MutationObserver((records) => {
+    for (const r of records) {
+      if (r.type === 'attributes' && r.attributeName === 'data-theme') {
+        triggerThemeReaction();
+        return;
+      }
+    }
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 </script>
