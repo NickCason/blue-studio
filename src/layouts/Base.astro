@@ -18,13 +18,13 @@ interface Props {
   type?: 'website' | 'article';
 }
 const {
-  title = 'Studio Marginalia — Nina Pfeiffer',
+  title = 'Blue Studio — Nina Pfeiffer',
   description = 'A personal-first journal and a quiet marketing studio. Essays, notes, and voice memos by Nina Pfeiffer.',
   ogImage = '/og-default.png',
   type = 'website',
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://studio-marginalia.pages.dev').toString();
-const siteUrl = 'https://studio-marginalia.pages.dev';
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://bluestudio.space').toString();
+const siteUrl = 'https://bluestudio.space';
 const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 ---
 <!doctype html>
@@ -35,7 +35,7 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
     <meta name="theme-color" content="#0F0F14" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" type="application/rss+xml" title="Studio Marginalia" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Blue Studio" href="/rss.xml" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />

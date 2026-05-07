@@ -16,15 +16,15 @@ export async function getStaticPaths() {
 
 interface Props { post: CollectionEntry<'posts'>; }
 const { post } = Astro.props;
-let title = 'Post — Studio Marginalia';
+let title = 'Post — Blue Studio';
 let description: string | undefined;
 switch (post.data.type) {
-  case 'essay': title = `${post.data.title} — Studio Marginalia`; description = post.data.dek; break;
-  case 'link':  title = `${post.data.title} — Studio Marginalia`; break;
-  case 'audio': title = `${post.data.title} — Studio Marginalia`; description = post.data.transcript?.slice(0, 160); break;
-  case 'quote': title = `From ${post.data.source} — Studio Marginalia`; break;
-  case 'note':  title = 'Note — Studio Marginalia'; break;
-  case 'photo': title = `Photo — Studio Marginalia`; description = post.data.caption; break;
+  case 'essay': title = `${post.data.title} — Blue Studio`; description = post.data.dek; break;
+  case 'link':  title = `${post.data.title} — Blue Studio`; break;
+  case 'audio': title = `${post.data.title} — Blue Studio`; description = post.data.transcript?.slice(0, 160); break;
+  case 'quote': title = `From ${post.data.source} — Blue Studio`; break;
+  case 'note':  title = 'Note — Blue Studio'; break;
+  case 'photo': title = `Photo — Blue Studio`; description = post.data.caption; break;
 }
 ---
 <Base title={title} description={description} type="article" ogImage={`/og/${post.slug}.png`}>

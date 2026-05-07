@@ -29,9 +29,9 @@ export function ogJsx({ title, type, year }: OgPayload) {
           props: {
             style: { display: 'flex', alignItems: 'center', fontSize: '28px', fontStyle: 'italic', color: '#E8E4DF' },
             children: [
-              { type: 'span', props: { children: 'studio' } },
+              { type: 'span', props: { children: 'blue' } },
               { type: 'span', props: { style: { color: '#B8A4D6', padding: '0 6px' }, children: '·' } },
-              { type: 'span', props: { children: 'marginalia' } },
+              { type: 'span', props: { children: 'studio' } },
             ],
           },
         },

@@ -4,7 +4,7 @@ const { pathname } = Astro.url;
 const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 ---
 <nav class="site-nav">
-  <a href="/" class="wordmark">studio<span class="wordmark__dot">·</span>marginalia</a>
+  <a href="/" class="wordmark">blue<span class="wordmark__dot">·</span>studio</a>
   <div class="nav-links">
     <a href="/" class:list={['nav-link', { active: pathname === '/' }]}>Journal</a>
     <a href="/work/" class:list={['nav-link', { active: isActive('/work') && !isActive('/work/portfolio') }]}>Work</a>

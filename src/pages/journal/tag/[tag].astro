@@ -31,7 +31,7 @@ export async function getStaticPaths() {
 interface Props { display: string; posts: CollectionEntry<'posts'>[]; }
 const { display, posts } = Astro.props;
 ---
-<Base title={`Tagged: ${display} — Studio Marginalia`}>
+<Base title={`Tagged: ${display} — Blue Studio`}>
   <section class="tag-feed">
     <a class="back" href="/">← All posts</a>
     <h1 class="hed serif-italic">Tagged: <em>{display}</em></h1>
