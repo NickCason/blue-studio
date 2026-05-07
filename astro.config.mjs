@@ -8,6 +8,7 @@ export default defineConfig({
   trailingSlash: 'always',
   build: { format: 'directory' },
   integrations: [sitemap(), waveformIntegration()],
+  devToolbar: { enabled: false },
   vite: {
     resolve: {
       alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) },
