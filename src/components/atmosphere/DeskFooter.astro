@@ -3,72 +3,150 @@
 // Spec: docs/superpowers/specs/2026-05-06-deskcat-footer-design.md
 ---
 
-<aside id="deskcat-footer" class="deskcat-footer" aria-hidden="true">
+<aside id="deskcat-footer" class="deskcat-footer collapsed" aria-hidden="true">
   <div class="deskcat-ground"></div>
-  <div class="deskcat-row">
-    {[1, 2, 3, 4, 5, 6].map((n) => (
-      <div class="deskcat-slot" data-cat-id={n}>
-        <div class="deskcat-bed" data-bed-variant={n}></div>
-        <div class="deskcat-home-sprite" data-cat-id={n}></div>
-      </div>
-    ))}
+  <div class="deskcat-panel" id="deskcat-panel">
+    <div class="deskcat-row">
+      {[1, 2, 3, 4, 5, 6].map((n) => (
+        <div class="deskcat-slot" data-cat-id={n}>
+          <div class="deskcat-bed" data-bed-variant={n}></div>
+          <div class="deskcat-home-sprite" data-cat-id={n}></div>
+        </div>
+      ))}
+    </div>
   </div>
+  <button class="deskcat-handle" id="deskcat-handle" type="button" aria-label="Open cat beds">
+    <span class="deskcat-handle-icon" aria-hidden="true">🐾</span>
+    <span class="deskcat-handle-label">cats</span>
+  </button>
   <div class="deskcat-out-host" id="deskcat-out-host" aria-hidden="true">
     <div class="deskcat-out-sprite" id="deskcat-out-sprite"></div>
   </div>
 </aside>
 
 <style is:global>
-  body { padding-bottom: 160px; }
+  body { padding-bottom: 28px; }
 </style>
 
 <style>
   .deskcat-footer {
     position: fixed;
     left: 0; right: 0; bottom: 0;
-    height: 140px;
     z-index: 50;
     pointer-events: none;
-    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.10) 60%, rgba(0,0,0,0.20) 100%);
-    border-top: 1px solid var(--border-soft, rgba(255,255,255,0.08));
-    backdrop-filter: blur(2px);
   }
+  /* Always-visible glassy desk surface. The cat walks on this whether panel is
+     collapsed or expanded; the panel slides up FROM here. */
   .deskcat-ground {
-    position: absolute;
+    position: fixed;
     left: 0; right: 0; bottom: 0;
-    height: 12px;
-    background: linear-gradient(180deg, rgba(214,163,92,0.10) 0%, rgba(214,163,92,0.02) 100%);
-    border-top: 1px solid rgba(214,163,92,0.18);
+    height: 64px;
+    background: linear-gradient(180deg,
+      rgba(214, 163, 92, 0.04) 0%,
+      rgba(0, 0, 0, 0.10) 35%,
+      rgba(0, 0, 0, 0.22) 100%);
+    border-top: 1px solid rgba(214, 163, 92, 0.18);
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+    z-index: 49;
+  }
+  :root[data-theme="light"] .deskcat-ground {
+    background: linear-gradient(180deg,
+      rgba(255, 245, 220, 0.20) 0%,
+      rgba(40, 30, 20, 0.04) 50%,
+      rgba(40, 30, 20, 0.10) 100%);
+    border-top-color: rgba(40, 30, 20, 0.12);
+  }
+
+  /* Panel houses the bed row and slides up from below when expanded.
+     Background is intentionally subtle — the ground surface above does the heavy
+     visual lifting; the panel adds depth where the beds live.
+     z-index 52 puts beds ABOVE both the ground surface (49) and the wandering
+     out-cat (51) so the popup wins the stacking battle. */
+  .deskcat-panel {
+    position: relative;
+    z-index: 52;
+    background: linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.22) 100%);
+    border-top: 1px solid var(--border-soft, rgba(255,255,255,0.08));
+    backdrop-filter: blur(4px);
+    pointer-events: auto;
+    transform-origin: bottom;
+    transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1), opacity 220ms ease;
+  }
+  .deskcat-footer.collapsed .deskcat-panel {
+    transform: translateY(100%);
+    opacity: 0;
     pointer-events: none;
   }
+  .deskcat-footer.expanded .deskcat-panel {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
   .deskcat-row {
     position: relative;
-    height: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: end;
-    gap: 16px;
-    padding: 0 24px 12px;
+    gap: 18px;
+    /* Desktop: 2px + 60px slot + 2px = 64px — matches the ground surface so the
+       walking cat flows smoothly past/over the panel area instead of stepping
+       up onto a taller platform. Mobile overrides this below. */
+    padding: 2px 24px;
+    flex-wrap: wrap;
+  }
+
+  /* Always-visible pill handle in the bottom-right; toggles the panel. */
+  .deskcat-handle {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 53;
+    background: var(--panel, #1d1916);
+    color: var(--ink, #efe6d6);
+    border: 1px solid var(--border-soft, rgba(214,163,92,0.25));
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex; align-items: center; gap: 8px;
+    font: inherit; font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    transition: background 180ms, transform 180ms, border-color 180ms;
+  }
+  .deskcat-handle:hover {
+    background: rgba(214, 163, 92, 0.18);
+    border-color: rgba(214, 163, 92, 0.5);
+    transform: translateY(-1px);
+  }
+  .deskcat-handle-icon { font-size: 16px; line-height: 1; }
+  .deskcat-handle-label { font-weight: 500; }
+  .deskcat-footer.expanded .deskcat-handle {
+    background: rgba(214, 163, 92, 0.22);
+    border-color: rgba(214, 163, 92, 0.5);
   }
   .deskcat-slot {
     position: relative;
-    width: 112px;
-    height: 112px;
+    width: 80px;                 /* smaller bed footprint */
+    height: 60px;
     pointer-events: auto;
     cursor: pointer;
+    overflow: visible;           /* cat can stick up over the rim — and grow on hover */
   }
   .deskcat-bed {
     position: absolute;
     inset: 0;
     background-image: url('/sprites/furniture/cat-beds.png');
     background-repeat: no-repeat;
-    background-size: 448px 112px;
+    background-size: 320px 60px; /* downscale 460x88 source -> 4 cells of 80x60 */
     image-rendering: pixelated;
   }
   .deskcat-bed[data-bed-variant="1"] { background-position:    0px 0; }
-  .deskcat-bed[data-bed-variant="2"] { background-position: -112px 0; }
-  .deskcat-bed[data-bed-variant="3"] { background-position: -224px 0; }
-  .deskcat-bed[data-bed-variant="4"] { background-position: -336px 0; }
+  .deskcat-bed[data-bed-variant="2"] { background-position:  -80px 0; }
+  .deskcat-bed[data-bed-variant="3"] { background-position: -160px 0; }
+  .deskcat-bed[data-bed-variant="4"] { background-position: -240px 0; }
   .deskcat-bed[data-bed-variant="5"] {
     background-position: 0px 0;
     filter: hue-rotate(45deg) saturate(0.95)
@@ -76,18 +154,74 @@
             drop-shadow(0 1px 2px var(--deskbed-shadow));
   }
   .deskcat-bed[data-bed-variant="6"] {
-    background-position: -112px 0;
+    background-position: -80px 0;
     filter: hue-rotate(-45deg) saturate(0.95)
             drop-shadow(0 0 3px var(--deskbed-glow))
             drop-shadow(0 1px 2px var(--deskbed-shadow));
   }
+
+  /* Mobile: shrink everything, wrap to multi-row, and rescale bed background
+     so each bed fits inside its smaller slot (no clip on bottom/right). */
+  @media (max-width: 600px) {
+    .deskcat-row {
+      gap: 10px;
+      padding: 10px 12px 14px;
+      justify-content: center;
+    }
+    .deskcat-slot {
+      width: 64px;
+      height: 48px;
+    }
+    .deskcat-bed {
+      background-size: 256px 48px;       /* 4 × 64 wide × 48 tall */
+    }
+    .deskcat-bed[data-bed-variant="1"] { background-position:    0px 0; }
+    .deskcat-bed[data-bed-variant="2"] { background-position:  -64px 0; }
+    .deskcat-bed[data-bed-variant="3"] { background-position: -128px 0; }
+    .deskcat-bed[data-bed-variant="4"] { background-position: -192px 0; }
+    .deskcat-bed[data-bed-variant="5"] { background-position:    0px 0; }
+    .deskcat-bed[data-bed-variant="6"] { background-position:  -64px 0; }
+    .deskcat-home-sprite {
+      width: 50px; height: 50px;
+      bottom: -2px;
+    }
+    .deskcat-handle {
+      bottom: 12px;
+      right: 12px;
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+  }
   .deskcat-home-sprite {
     position: absolute;
-    left: 50%; bottom: 22px;
-    width: 100px; height: 100px;
-    transform: translateX(-50%);
+    left: 50%; bottom: -2px;     /* slightly below bottom of slot — cat's feet ground in the bowl */
+    width: 70px; height: 70px;
+    transform: translateX(-50%) scale(1);
+    transform-origin: 50% 100%;  /* grows up from the bed */
     image-rendering: pixelated;
     background-repeat: no-repeat;
+    transition: transform 280ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 200ms;
+  }
+  /* Hover an inactive bed -> its cat grows to match the wandering-cat size. */
+  /* Ratio: OUT_SCALE / HOME_SCALE = 3 / 1.4 ≈ 2.14 */
+  /* `.queued` keeps the cat grown after click while waiting for the current cat to return. */
+  .deskcat-slot:hover .deskcat-home-sprite:not(.hidden),
+  .deskcat-slot.queued .deskcat-home-sprite:not(.hidden) {
+    transform: translateX(-50%) scale(2.14);
+  }
+  .deskcat-home-sprite.hidden {
+    opacity: 0;
+    pointer-events: none;
+    /* Intentionally do NOT reset transform here — let the sprite fade out at
+       whatever scale it had (e.g. grown from hover) so click-to-release doesn't
+       look like a snap-shrink. */
+  }
+  /* Out-cat host — smooth shrink during walk back (transition spans ~the walk duration) */
+  .deskcat-out-host { transform-origin: center bottom; will-change: left, transform; }
+  .deskcat-out-host.shrinking {
+    transition: transform var(--shrink-duration, 1200ms) ease-in-out;
+    transform: scale(0.467);    /* matches HOME_SCALE / OUT_SCALE */
+    z-index: 53;                /* above panel (52) so we see the cat land in the bed */
   }
   .deskcat-out-host {
     position: fixed;
@@ -132,8 +266,8 @@
   // Pet Cats Pack — animation catalog
   // ============================================================
   const FRAME = 50;
-  const HOME_SCALE = 2;
-  const OUT_SCALE = 3;
+  const HOME_SCALE = 1.4;   // 70×70 — sits in the 80×60 bed and sticks up over the rim
+  const OUT_SCALE = 3;       // 150×150 — wandering cat is dramatically larger
 
   type AnimName = 'Sitting' | 'Idle' | 'Licking 1' | 'Licking 2' | 'Stretching'
                 | 'Walk' | 'Laying' | 'Sleeping1' | 'Sleeping2' | 'Meow';
@@ -226,7 +360,7 @@
     idle:    { anim: 'Idle',       loops: [2, 4] },
     groom1:  { anim: 'Licking 1',  loops: [2, 4] },
     groom2:  { anim: 'Licking 2',  loops: [1, 3] },
-    lay:     { anim: 'Laying',     loops: [2, 4] },
+    lay:     { anim: 'Laying',     loops: [1, 2] },     // was [2,4] — too long
     sleep1:  { anim: 'Sleeping1',  hold: [4000, 10000] },
     sleep2:  { anim: 'Sleeping2',  hold: [3000, 8000] },
     stretch: { anim: 'Stretching', loops: 1 },
@@ -267,9 +401,19 @@
   }
 
   // ============================================================
-  // Init — spin up the 6 home cats
+  // Init — preload all sprites (eliminate cache-miss flash between transitions)
+  //        and spin up the 6 home cats
   // ============================================================
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Preload every cat × every anim so transitions never wait for disk I/O
+  const ANIM_NAMES: AnimName[] = ['Sitting', 'Idle', 'Licking 1', 'Licking 2', 'Stretching', 'Walk', 'Laying', 'Sleeping1', 'Sleeping2', 'Meow'];
+  for (let n = 1; n <= 6; n++) {
+    for (const a of ANIM_NAMES) {
+      const img = new Image();
+      img.src = animPath(n, a);
+    }
+  }
 
   const homeCats: Record<number, ReturnType<typeof startHomeCat>> = {};
   for (let n = 1; n <= 6; n++) {
@@ -313,7 +457,7 @@
     groom2:  { anim: 'Licking 2',  loops: [2, 4] },
     stretch: { anim: 'Stretching', loops: 1 },
     walk:    { anim: 'Walk',       motion: { distance: [80, 220], speedPxPerSec: 60 } },
-    lay:     { anim: 'Laying',     loops: [2, 4] },
+    lay:     { anim: 'Laying',     loops: [1, 2] },      // was [2,4] — too long
     sleep1:  { anim: 'Sleeping1',  hold: [4000, 12000] },
     sleep2:  { anim: 'Sleeping2',  hold: [3000, 8000] },
     meow:    { anim: 'Meow',       loops: 1 },
@@ -336,6 +480,26 @@
   const outHost = document.getElementById('deskcat-out-host')!;
   const outSprite = document.getElementById('deskcat-out-sprite')! as HTMLElement;
   const outPlayer = makeSpritePlayer(outSprite, OUT_SCALE);
+  const footerEl = document.getElementById('deskcat-footer')!;
+  const handleEl = document.getElementById('deskcat-handle')!;
+  const panelEl = document.getElementById('deskcat-panel')!;
+
+  // ============================================================
+  // Panel expand/collapse — show beds on demand
+  // ============================================================
+  function isExpanded(): boolean { return footerEl.classList.contains('expanded'); }
+  function expandPanel() {
+    footerEl.classList.add('expanded');
+    footerEl.classList.remove('collapsed');
+  }
+  function collapsePanel() {
+    footerEl.classList.remove('expanded');
+    footerEl.classList.add('collapsed');
+  }
+  // User toggles via the handle
+  handleEl.addEventListener('click', () => {
+    if (isExpanded()) collapsePanel(); else expandPanel();
+  });
 
   let outCatN: number | null = null;
   let outState: OutState = 'sit';
@@ -370,11 +534,30 @@
     outMotionRAF = requestAnimationFrame(step);
   }
 
-  function pickWalkTarget(currentX: number, distRange: [number, number]): number {
+  // Walking area depends on panel state.
+  //  - Expanded: cat wanders to the RIGHT of the visible bed row (avoids stepping on beds).
+  //  - Collapsed: cat wanders the full viewport width minus the handle pill.
+  function getWalkBounds(): { minX: number; maxX: number } {
     const stageW = getStageWidth();
     const catW = getCatWidth();
+    const handleRect = handleEl.getBoundingClientRect();
+    const handleLeftBound = handleRect.left - 16;  // small buffer before the handle
+    if (isExpanded()) {
+      const lastSlot = document.querySelector<HTMLElement>('.deskcat-slot[data-cat-id="6"]');
+      const panelRect = panelEl.getBoundingClientRect();
+      const minX = lastSlot
+        ? Math.min(lastSlot.getBoundingClientRect().right, panelRect.right) + 24
+        : STAGE_PADDING_X;
+      const maxX = Math.min(stageW - STAGE_PADDING_X, handleLeftBound) - catW;
+      return { minX, maxX: Math.max(minX + 40, maxX) };
+    }
     const minX = STAGE_PADDING_X;
-    const maxX = stageW - catW - STAGE_PADDING_X;
+    const maxX = handleLeftBound - catW;
+    return { minX, maxX: Math.max(minX + 40, maxX) };
+  }
+
+  function pickWalkTarget(currentX: number, distRange: [number, number]): number {
+    const { minX, maxX } = getWalkBounds();
     for (let i = 0; i < 8; i++) {
       const dist = rand(distRange[0], distRange[1]);
       const dir = Math.random() < 0.5 ? -1 : 1;
@@ -429,38 +612,74 @@
     return rect.left + rect.width / 2;
   }
 
+  function setHomeSpriteVisible(catN: number, visible: boolean) {
+    const el = document.querySelector<HTMLElement>(`.deskcat-home-sprite[data-cat-id="${catN}"]`);
+    if (el) el.classList.toggle('hidden', !visible);
+  }
+
   function sendCurrentHome(onArrived?: () => void) {
     if (outCatN == null) { if (onArrived) onArrived(); return; }
+    // Make sure the panel is open so the user sees the cat going home
+    expandPanel();
     const catN = outCatN;
     const targetCenter = getBedCenterX(catN);
     const targetLeft = targetCenter - getCatWidth() / 2;
     outScheduling = false;
     cancelOutMotion();
     outPlayer.play(catN, 'Walk', { loops: 99 });
-    walkTo(targetLeft, 80, () => {
+
+    // Compute walk duration so the shrink transition spans the full walk back.
+    const startX = parseFloat(outHost.style.left) || 0;
+    const distance = Math.abs(targetLeft - startX);
+    const speed = 80;
+    const walkMs = Math.max(400, (distance / speed) * 1000);
+    outHost.style.setProperty('--shrink-duration', `${Math.round(walkMs)}ms`);
+    // Force reflow so the duration var is in effect before .shrinking activates
+    void outHost.offsetWidth;
+    outHost.classList.add('shrinking');
+
+    walkTo(targetLeft, speed, () => {
+      // Arrived at bed at home-cat size. Hand off to the home sprite.
       showOut(false);
+      outHost.classList.remove('shrinking');
+      outHost.style.removeProperty('--shrink-duration');
       outCatN = null;
+      setHomeSpriteVisible(catN, true);
       if (!reducedMotion) {
         const hostEl = document.querySelector<HTMLElement>(`.deskcat-home-sprite[data-cat-id="${catN}"]`);
         if (hostEl) homeCats[catN] = startHomeCat(catN, hostEl);
       }
       if (onArrived) onArrived();
+      else collapsePanel();   // No follow-up release queued — collapse now
     });
   }
 
   function releaseCat(catN: number) {
+    // Panel must be open for the bed to exist on screen
+    expandPanel();
     if (homeCats[catN]) { homeCats[catN].stopAndPark(); delete homeCats[catN]; }
 
     const bedX = getBedCenterX(catN) - getCatWidth() / 2;
     outHost.style.left = `${bedX}px`;
-    setOutFacing(Math.random() < 0.5 ? -1 : 1);
+    outHost.classList.remove('shrinking');     // ensure full size
+    setHomeSpriteVisible(catN, false);
+    setOutFacing(1);                           // face right — toward the walking area
     outCatN = catN;
     showOut(true);
 
     outScheduling = true;
+    // Stretch in bed, THEN walk out into the walking area, THEN begin idle FSM
     outPlayer.play(catN, 'Stretching', { loops: 1 }, () => {
       if (outCatN !== catN) return;
-      setOutState('idle');
+      const { minX, maxX } = getWalkBounds();
+      const target = minX + Math.random() * Math.max(0, (maxX - minX)) * 0.4;
+      walkTo(target, 70, () => {
+        if (outCatN !== catN) return;
+        // Cat has left the panel area — collapse now
+        collapsePanel();
+        setOutState('idle');
+      });
+      outPlayer.play(catN, 'Walk', { loops: 99 });
     });
     setActiveCat(catN);
   }
@@ -472,8 +691,15 @@
       return;
     }
     if (outCatN != null) {
-      sendCurrentHome();
-      releaseCat(catN);
+      // Switch cats — current goes home, THEN target releases (sequential, not parallel).
+      // Mark the target slot as `.queued` so its home sprite stays grown during the wait
+      // (otherwise CSS :hover ends when the cursor leaves and we get a snap-shrink + late pop).
+      const targetSlot = document.querySelector<HTMLElement>(`.deskcat-slot[data-cat-id="${catN}"]`);
+      targetSlot?.classList.add('queued');
+      sendCurrentHome(() => {
+        targetSlot?.classList.remove('queued');
+        releaseCat(catN);
+      });
       return;
     }
     releaseCat(catN);
@@ -493,18 +719,19 @@
   // ============================================================
   function arriveCat(catN: number) {
     if (homeCats[catN]) { homeCats[catN].stopAndPark(); delete homeCats[catN]; }
+    setHomeSpriteVisible(catN, false);
 
-    const homeCenter = getBedCenterX(catN);
+    // With beds on the left, the cat always arrives from the right edge offscreen
+    // and walks left into the walking area.
     const stageW = getStageWidth();
     const catW = getCatWidth();
-    const homeOnLeft = homeCenter < stageW / 2;
-    // Start off-screen on the side OPPOSITE home
-    const startX = homeOnLeft ? stageW + 20 : -catW - 20;
-    // Walk to a wandering position on the side opposite home
-    const targetX = homeOnLeft ? Math.round(stageW * 0.65) - catW / 2 : Math.round(stageW * 0.35) - catW / 2;
+    const startX = stageW + 20;
+    const { minX, maxX } = getWalkBounds();
+    const targetX = minX + Math.max(0, (maxX - minX)) * 0.5;
 
     outHost.style.left = `${startX}px`;
-    setOutFacing(homeOnLeft ? -1 : 1);  // face inward
+    outHost.classList.remove('shrinking');
+    setOutFacing(-1);              // face inward (left)
     outCatN = catN;
     showOut(true);
     outScheduling = false;
