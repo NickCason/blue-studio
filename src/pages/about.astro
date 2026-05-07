@@ -7,7 +7,7 @@ if (!entry) throw new Error('Missing src/content/pages/about.md');
 const { Content } = await entry.render();
 const { title, dek } = entry.data;
 ---
-<Base title={`${title} — Studio Marginalia`}>
+<Base title={`${title} — Blue Studio`}>
   <section class="page">
     <h1 class="hed serif-italic">{title}</h1>
     {dek && <p class="dek serif-italic">{dek}</p>}

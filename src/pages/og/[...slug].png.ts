@@ -33,9 +33,9 @@ export const GET: APIRoute = async ({ props }) => {
     case 'quote': title = `"${(post.body ?? '').toString().trim().replace(/^["“]|["”]$/g, '').slice(0, 100)}"`; break;
     case 'note':  title = (post.body ?? '').toString().trim().slice(0, 120); break;
     case 'photo': title = post.data.caption ?? 'Photo'; break;
-    default:      title = 'Studio Marginalia';
+    default:      title = 'Blue Studio';
   }
-  if (!title) title = 'Studio Marginalia';
+  if (!title) title = 'Blue Studio';
   title = asciiClean(title);
 
   const fontPath = path.resolve('public/fonts/Fraunces-Italic.ttf');

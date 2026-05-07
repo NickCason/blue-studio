@@ -1,8 +1,8 @@
-# studio·marginalia
+# blue·studio
 
 A personal-first journal and a quiet marketing studio for Nina Pfeiffer. Built as a gift, written in part by an AI, maintained by Nina via a friendly CMS.
 
-**Live (provisional):** `studio-marginalia.pages.dev` *(after the Cloudflare account is connected — see Deployment below)*
+**Live (provisional):** `bluestudio.space` *(after the Cloudflare account is connected — see Deployment below)*
 
 **Local right now:** the build is shipped and a preview server is running on this Mac (tailnet-bound). See `Local right now` section below for the URLs.
 
@@ -107,10 +107,10 @@ docs/superpowers/
 
 1. **Cloudflare account:** https://dash.cloudflare.com/sign-up (free)
 2. From repo: `npx wrangler login` (opens browser)
-3. Push the repo to GitHub: `gh repo create studio-marginalia --public --source=. --push`
-4. In Cloudflare Pages dashboard, *Connect Git → choose `studio-marginalia`*. Build command: `pnpm build`, output: `dist`.
+3. Push the repo to GitHub: `gh repo create blue-studio --public --source=. --push`
+4. In Cloudflare Pages dashboard, *Connect Git → choose `blue-studio`*. Build command: `pnpm build`, output: `dist`.
 5. Add env vars in Pages settings (same names as `.env.example`).
-6. First push to `main` triggers a build → `studio-marginalia.pages.dev`.
+6. First push to `main` triggers a build → `blue-studio.pages.dev`.
 
 For ad-hoc CLI deploys: `pnpm build && pnpm deploy`.
 

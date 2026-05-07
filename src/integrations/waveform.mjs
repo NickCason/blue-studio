@@ -62,7 +62,7 @@ export default function waveformIntegration() {
     await Promise.all(all.map(processAudioFile));
   };
   return {
-    name: 'studio-marginalia:waveform',
+    name: 'blue-studio:waveform',
     hooks: {
       'astro:build:start': async ({ logger }) => run(logger, 'build'),
       'astro:server:start': async ({ logger }) => run(logger, 'dev'),

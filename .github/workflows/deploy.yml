@@ -59,7 +59,7 @@ jobs:
           TINA_PUBLIC_CLIENT_ID: ${{ secrets.TINA_PUBLIC_CLIENT_ID }}
           TINA_TOKEN: ${{ secrets.TINA_TOKEN }}
           PUBLIC_FORMSPREE_ENDPOINT: ${{ secrets.PUBLIC_FORMSPREE_ENDPOINT }}
-          PUBLIC_SITE_URL: https://studio-marginalia.pages.dev
+          PUBLIC_SITE_URL: https://bluestudio.space
         run: pnpm astro build
 
       - name: Deploy to Cloudflare Pages
@@ -67,4 +67,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./dist --project-name=studio-marginalia --branch=main --commit-dirty=true
+          command: pages deploy ./dist --project-name=blue-studio --branch=main --commit-dirty=true

@@ -15,14 +15,14 @@ const layout = {
     children: [
       { type: 'div', props: { style: { fontSize: '32px', display: 'flex', alignItems: 'center' },
         children: [
-          { type: 'span', props: { children: 'studio' } },
+          { type: 'span', props: { children: 'blue' } },
           { type: 'span', props: { style: { color: '#B8A4D6', padding: '0 8px' }, children: '·' } },
-          { type: 'span', props: { children: 'marginalia' } },
+          { type: 'span', props: { children: 'studio' } },
         ] } },
       { type: 'div', props: { style: { fontSize: '88px', lineHeight: 1.1, maxWidth: '1040px', display: 'flex' },
         children: 'A reading room, kept lit.' } },
       { type: 'div', props: { style: { fontSize: '20px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#B8A4D6', fontFamily: 'Fraunces', fontStyle: 'italic', display: 'flex' },
-        children: 'studio marginalia · 2026' } },
+        children: 'blue studio · 2026' } },
     ],
   },
 };

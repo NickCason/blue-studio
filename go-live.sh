@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# go-live.sh — build + deploy Studio Marginalia to Cloudflare Pages.
+# go-live.sh — build + deploy Blue Studio to Cloudflare Pages.
 #
 # Secrets live in .env.local (gitignored). See .env.local.example for the shape.
 # This script reads .env.local automatically — it never holds secrets itself,
@@ -23,8 +23,8 @@ set -euo pipefail
 
 GITHUB_USER="NickCason"
 REPO_VISIBILITY="public"
-CF_PROJECT_NAME="studio-marginalia"
-CONTACT_EMAIL="hello@studiomarginalia.com"
+CF_PROJECT_NAME="blue-studio"
+CONTACT_EMAIL="hello@bluestudio.space"
 
 # =============================================================================
 #  Don't edit below.

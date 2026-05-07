@@ -5,9 +5,9 @@ import { getAllPosts } from '~/lib/getAllPosts';
 export async function GET(context: APIContext) {
   const posts = await getAllPosts();
   return rss({
-    title: 'Studio Marginalia',
+    title: 'Blue Studio',
     description: 'Notes and essays by Nina Pfeiffer.',
-    site: context.site ?? 'https://studio-marginalia.pages.dev',
+    site: context.site ?? 'https://bluestudio.space',
     items: posts.map((p) => {
       const data = p.data;
       let title = '';
