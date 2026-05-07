@@ -1,5 +1,5 @@
 {
-  "name": "studio-marginalia",
+  "name": "blue-studio",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "test:watch": "vitest",
     "test:smoke": "playwright test",
     "tts": "node scripts/tts.mjs",
-    "deploy": "wrangler pages deploy ./dist --project-name=studio-marginalia"
+    "deploy": "wrangler pages deploy ./dist --project-name=blue-studio"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.11",

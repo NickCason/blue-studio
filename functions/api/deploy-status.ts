@@ -7,7 +7,7 @@
 // Endpoint: GET /api/deploy-status
 // Returns:  { run: <run-summary> | null }
 
-const REPO = 'NickCason/studio-marginalia';
+const REPO = 'NickCason/blue-studio';
 const BRANCH = 'main';
 
 interface Env {
@@ -18,7 +18,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'studio-marginalia-deploy-status',
+    'User-Agent': 'blue-studio-deploy-status',
   };
   if (env.GH_TOKEN) headers['Authorization'] = `Bearer ${env.GH_TOKEN}`;
 

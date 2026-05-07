@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import waveformIntegration from './src/integrations/waveform.mjs';
 
 export default defineConfig({
-  site: 'https://studio-marginalia.pages.dev',
+  site: 'https://bluestudio.space',
   trailingSlash: 'always',
   build: { format: 'directory' },
   integrations: [sitemap(), waveformIntegration()],

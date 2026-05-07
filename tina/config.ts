@@ -1,11 +1,11 @@
-// Tina CMS schema for Studio Marginalia.
+// Tina CMS schema for Blue Studio.
 // Schema mirrors src/content/config.ts. Each post picks its `type` from a
 // dropdown — Astro's Zod schema strips fields irrelevant to the chosen type.
 
 import { defineConfig } from 'tinacms';
 
-const GH_REPO = 'NickCason/studio-marginalia';
-const SITE_URL = 'https://studio-marginalia.pages.dev';
+const GH_REPO = 'NickCason/blue-studio';
+const SITE_URL = 'https://bluestudio.space';
 const POLL_MS = 2000;
 const BURST_MS = 1500;
 const BURST_TICKS = 12;
@@ -166,7 +166,7 @@ export default defineConfig({
             if (!successShownAt.has(run.id)) successShownAt.set(run.id, Date.now());
             const shownFor = Date.now() - (successShownAt.get(run.id) ?? Date.now());
             if (shownFor < 12000) {
-              paint('success', `Live at studio-marginalia.pages.dev`, { url, elapsed });
+              paint('success', `Live at bluestudio.space`, { url, elapsed });
             } else {
               hide();
             }
