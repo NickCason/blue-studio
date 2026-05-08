@@ -415,17 +415,8 @@
     }
   }
 
+  // Home cat FSMs spun up inside setupDeskCat() so they re-bind across view transitions
   const homeCats: Record<number, ReturnType<typeof startHomeCat>> = {};
-  for (let n = 1; n <= 6; n++) {
-    const hostEl = document.querySelector<HTMLElement>(`.deskcat-home-sprite[data-cat-id="${n}"]`);
-    if (!hostEl) continue;
-    if (reducedMotion) {
-      const player = makeSpritePlayer(hostEl, HOME_SCALE);
-      player.play(n, 'Sitting', {});
-    } else {
-      homeCats[n] = startHomeCat(n, hostEl);
-    }
-  }
 
   // ============================================================
   // localStorage — which cat (if any) is currently out
@@ -477,12 +468,14 @@
   };
 
   const STAGE_PADDING_X = 40;
-  const outHost = document.getElementById('deskcat-out-host')!;
-  const outSprite = document.getElementById('deskcat-out-sprite')! as HTMLElement;
-  const outPlayer = makeSpritePlayer(outSprite, OUT_SCALE);
-  const footerEl = document.getElementById('deskcat-footer')!;
-  const handleEl = document.getElementById('deskcat-handle')!;
-  const panelEl = document.getElementById('deskcat-panel')!;
+  // DOM refs are re-captured on every astro:page-load so they stay valid even if
+  // Astro's view transitions hand back a freshly-mounted clone of the persisted node.
+  let outHost: HTMLElement;
+  let outSprite: HTMLElement;
+  let outPlayer: ReturnType<typeof makeSpritePlayer>;
+  let footerEl: HTMLElement;
+  let handleEl: HTMLElement;
+  let panelEl: HTMLElement;
 
   // ============================================================
   // Panel expand/collapse — show beds on demand
@@ -496,10 +489,7 @@
     footerEl.classList.remove('expanded');
     footerEl.classList.add('collapsed');
   }
-  // User toggles via the handle
-  handleEl.addEventListener('click', () => {
-    if (isExpanded()) collapsePanel(); else expandPanel();
-  });
+  // Handle/slot/outHost click listeners attached inside setupDeskCat (idempotent)
 
   let outCatN: number | null = null;
   let outState: OutState = 'sit';
@@ -705,14 +695,7 @@
     releaseCat(catN);
   }
 
-  document.querySelectorAll<HTMLElement>('.deskcat-slot').forEach((slot) => {
-    const id = parseInt(slot.dataset.catId || '0', 10);
-    if (!id) return;
-    slot.addEventListener('click', () => handleBedClick(id));
-  });
-  outHost.addEventListener('click', () => {
-    if (outCatN != null) { sendCurrentHome(); setActiveCat(null); }
-  });
+  // Slot/outHost click listeners attached inside setupDeskCat (idempotent)
 
   // ============================================================
   // Restore on load — saved cat arrives from opposite side of screen
@@ -744,11 +727,7 @@
     outPlayer.play(catN, 'Walk', { loops: 99 });
   }
 
-  // Run restore once on init — defer one frame so layout is settled
-  const savedCat = getActiveCat();
-  if (savedCat != null && !reducedMotion) {
-    requestAnimationFrame(() => arriveCat(savedCat));
-  }
+  // Saved-cat arrival happens inside setupDeskCat first-load branch (below)
 
   // ============================================================
   // Theme reaction — out-cat stretches when candle toggles
@@ -766,14 +745,102 @@
     });
   }
 
-  // Watch for data-theme changes on <html>
-  const themeObserver = new MutationObserver((records) => {
-    for (const r of records) {
-      if (r.type === 'attributes' && r.attributeName === 'data-theme') {
-        triggerThemeReaction();
-        return;
+  // Theme observer is rebound on every astro:page-load to track the current <html>
+  let themeObserver: MutationObserver | null = null;
+
+  // ============================================================
+  // setupDeskCat — runs on initial load AND on every astro:page-load.
+  // Re-captures DOM refs (handles view-transition clone-on-persist), attaches
+  // listeners idempotently via data-wired markers, rebinds the theme observer
+  // to the current <html>, and on first load spins up FSMs + restores saved cat.
+  // FSM state (outCatN, homeCats, etc.) lives at module scope so the cat keeps
+  // its memory across navs.
+  // ============================================================
+  let firstLoad = true;
+
+  function setupDeskCat() {
+    // 1. Re-capture DOM refs
+    outHost = document.getElementById('deskcat-out-host')!;
+    outSprite = document.getElementById('deskcat-out-sprite')! as HTMLElement;
+    if (outPlayer) outPlayer.cancel();
+    outPlayer = makeSpritePlayer(outSprite, OUT_SCALE);
+    footerEl = document.getElementById('deskcat-footer')!;
+    handleEl = document.getElementById('deskcat-handle')!;
+    panelEl = document.getElementById('deskcat-panel')!;
+
+    // 2. Idempotent listener attach — data-wired marker lives on the DOM node, so a
+    //    fresh clone has no marker and gets a fresh listener; a persisted node skips.
+    if (!handleEl.dataset.wired) {
+      handleEl.dataset.wired = '1';
+      handleEl.addEventListener('click', () => {
+        if (isExpanded()) collapsePanel(); else expandPanel();
+      });
+    }
+    document.querySelectorAll<HTMLElement>('.deskcat-slot').forEach((slot) => {
+      if (slot.dataset.wired) return;
+      slot.dataset.wired = '1';
+      const id = parseInt(slot.dataset.catId || '0', 10);
+      if (id) slot.addEventListener('click', () => handleBedClick(id));
+    });
+    if (!outHost.dataset.wired) {
+      outHost.dataset.wired = '1';
+      outHost.addEventListener('click', () => {
+        if (outCatN != null) { sendCurrentHome(); setActiveCat(null); }
+      });
+    }
+
+    // 3. Rebind theme observer to the current <html> (the old one is gone after swap)
+    if (themeObserver) themeObserver.disconnect();
+    themeObserver = new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes' && r.attributeName === 'data-theme') {
+          triggerThemeReaction();
+          return;
+        }
+      }
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // 4. Home cat FSMs — start fresh for any home sprite that's a new DOM node.
+    //    Marker on the home-sprite element itself; if it's missing, the prior FSM
+    //    (if any) is now writing to a detached node — cancel and restart on the live one.
+    for (let n = 1; n <= 6; n++) {
+      const hostEl = document.querySelector<HTMLElement>(`.deskcat-home-sprite[data-cat-id="${n}"]`);
+      if (!hostEl) continue;
+      if (hostEl.dataset.wired) continue;
+      hostEl.dataset.wired = '1';
+      if (homeCats[n]) { homeCats[n].stopAndPark(); delete homeCats[n]; }
+      if (outCatN === n) {
+        hostEl.classList.add('hidden');
+      } else if (reducedMotion) {
+        const player = makeSpritePlayer(hostEl, HOME_SCALE);
+        player.play(n, 'Sitting', {});
+      } else {
+        homeCats[n] = startHomeCat(n, hostEl);
       }
     }
-  });
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // 5. First load → restore saved cat. Subsequent loads with an active out cat →
+    //    re-show it on the (possibly fresh) outHost element.
+    if (firstLoad) {
+      firstLoad = false;
+      const savedCat = getActiveCat();
+      if (savedCat != null && !reducedMotion) {
+        requestAnimationFrame(() => arriveCat(savedCat));
+      }
+    } else if (outCatN != null) {
+      // After view transition, the persisted outHost may be a fresh clone with no
+      // inline left/display styles. Drop the cat into a sensible mid-stage spot and
+      // resume idle FSM on the live element.
+      outHost.style.display = 'block';
+      const { minX, maxX } = getWalkBounds();
+      outHost.style.left = `${(minX + maxX) / 2}px`;
+      outScheduling = true;
+      setOutState('idle');
+    }
+  }
+
+  // astro:page-load fires on initial page load AND after every soft-nav, so
+  // registering once is enough — no manual initial call needed.
+  document.addEventListener('astro:page-load', setupDeskCat);
 </script>
