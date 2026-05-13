@@ -39,41 +39,38 @@ jobs:
           REMOVED: ${{ toJson(github.event.head_commit.removed) }}
         run: |
           set -euo pipefail
+          NL=$'\n'
           if [ "$IS_MANUAL" = "true" ]; then
             TITLE="Blue Studio: Tina edit (test)"
-            MSG="Manual dispatch — $REASON"
+            MSG="Manual dispatch — ${REASON}"
             URL="https://bluestudio.space"
           else
             SHORT_SHA="${COMMIT_SHA:0:7}"
-            # Summarize changed files (cap to 8 lines so push notifs stay readable).
             FILES=$(jq -rn \
               --argjson a "$ADDED" \
               --argjson m "$MODIFIED" \
               --argjson r "$REMOVED" \
               '($a | map("+ " + .)) + ($m | map("~ " + .)) + ($r | map("- " + .)) | .[]' \
               | head -8)
-            EXTRA=$(jq -rn \
+            TOTAL=$(jq -rn \
               --argjson a "$ADDED" \
               --argjson m "$MODIFIED" \
               --argjson r "$REMOVED" \
               '($a + $m + $r) | length')
-            if [ "$EXTRA" -gt 8 ]; then
-              FILES="${FILES}
-…and $((EXTRA - 8)) more"
+            if [ "$TOTAL" -gt 8 ]; then
+              FILES="${FILES}${NL}…and $((TOTAL - 8)) more"
             fi
             TITLE="Blue Studio: Tina edit"
-            MSG="${COMMIT_MSG}
-${SHORT_SHA}
-${FILES}"
+            MSG="${COMMIT_MSG}${NL}${SHORT_SHA}${NL}${FILES}"
             URL="$COMMIT_URL"
           fi
           {
-            echo "title<<EOF"
+            echo "title<<MSGEOF"
             echo "$TITLE"
-            echo "EOF"
-            echo "message<<EOF"
+            echo "MSGEOF"
+            echo "message<<MSGEOF"
             echo "$MSG"
-            echo "EOF"
+            echo "MSGEOF"
             echo "url=$URL"
           } >> "$GITHUB_OUTPUT"
 
