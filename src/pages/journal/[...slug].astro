@@ -6,7 +6,6 @@ import NotePage from '~/components/post-permalinks/NotePage.astro';
 import QuotePage from '~/components/post-permalinks/QuotePage.astro';
 import LinkPage from '~/components/post-permalinks/LinkPage.astro';
 import PhotoPage from '~/components/post-permalinks/PhotoPage.astro';
-import GalleryPage from '~/components/post-permalinks/GalleryPage.astro';
 import AudioPage from '~/components/post-permalinks/AudioPage.astro';
 import BackToJournal from '~/components/post-permalinks/BackToJournal.astro';
 
@@ -26,12 +25,6 @@ switch (post.data.type) {
   case 'quote': title = `From ${post.data.source} — Blue Studio`; break;
   case 'note':  title = 'Note — Blue Studio'; break;
   case 'photo': title = `Photo — Blue Studio`; description = post.data.caption; break;
-  case 'gallery': {
-    const firstCap = post.data.images[0]?.caption;
-    title = `Gallery — Blue Studio`;
-    description = firstCap ?? `${post.data.images.length} photos`;
-    break;
-  }
 }
 ---
 <Base title={title} description={description} type="article" ogImage={`/og/${post.slug}.png`}>
@@ -42,7 +35,6 @@ switch (post.data.type) {
     {post.data.type === 'quote' && <QuotePage post={post} />}
     {post.data.type === 'link'  && <LinkPage  post={post} />}
     {post.data.type === 'photo' && <PhotoPage post={post} />}
-    {post.data.type === 'gallery' && <GalleryPage post={post} />}
     {post.data.type === 'audio' && <AudioPage post={post} />}
   </div>
 </Base>

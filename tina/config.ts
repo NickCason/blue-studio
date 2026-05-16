@@ -251,7 +251,6 @@ export default defineConfig({
               { value: 'quote', label: 'Quote' },
               { value: 'link', label: 'Link' },
               { value: 'photo', label: 'Photo' },
-              { value: 'gallery', label: 'Gallery (multi-image carousel)' },
               { value: 'audio', label: 'Voice memo' },
             ],
           },
@@ -289,19 +288,6 @@ export default defineConfig({
 
           // -- Photo --
           { type: 'string', name: 'caption', label: '[PHOTO] Caption', ui: { component: 'textarea' } },
-
-          // -- Gallery: list of {src, caption} objects --
-          {
-            type: 'object',
-            name: 'images',
-            label: '[GALLERY] Images',
-            list: true,
-            ui: { itemProps: (item: { caption?: string; src?: string }) => ({ label: item?.caption || item?.src || 'Image' }) },
-            fields: [
-              { type: 'image', name: 'src', label: 'Image' },
-              { type: 'string', name: 'caption', label: 'Caption (optional)' },
-            ],
-          },
 
           // -- Audio (uploads via Tina media picker; on iPhone this opens the
           // native voice recorder via the input's capture attribute) --
