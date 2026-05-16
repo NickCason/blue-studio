@@ -14,7 +14,14 @@ export async function getStaticPaths() {
   const seen = new Map<string, string>(); // slug → display
   for (const post of posts) {
     const tags = (post.data as { tags?: string[] }).tags ?? [];
-    for (const t of tags) seen.set(slugifyTag(t), t);
+    for (const t of tags) {
+      // Tina lets users add an empty tag row; slugifyTag('') → ''
+      // which breaks Astro's getStaticPaths (empty path param).
+      if (!t || !t.trim()) continue;
+      const slug = slugifyTag(t);
+      if (!slug) continue;
+      seen.set(slug, t);
+    }
   }
   return Array.from(seen.entries()).map(([slug, display]) => ({
     params: { tag: slug },

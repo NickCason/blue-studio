@@ -6,10 +6,11 @@ interface Props {
   inline?: boolean;
 }
 const { tags, inline = false } = Astro.props;
+const cleanTags = (tags ?? []).filter((t) => t && t.trim());
 ---
-{tags && tags.length > 0 && (
+{cleanTags.length > 0 && (
   <div class:list={['tag-list', { inline }]}>
-    {tags.map((t) => <Tag tag={t} />)}
+    {cleanTags.map((t) => <Tag tag={t} />)}
   </div>
 )}
 <style>
