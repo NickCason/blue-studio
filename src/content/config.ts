@@ -8,7 +8,7 @@ const postSchema = z.discriminatedUnion('type', [
     title: z.string(),
     dek: z.string().optional(),
     publishedAt: z.coerce.date(),
-    heroImage: z.string().optional(),
+    image: z.string().optional(),
     threadId: z.string().optional(),
     tags: tagSchema,
     draft: z.boolean().default(false),

@@ -265,31 +265,36 @@ export default defineConfig({
           { type: 'string', name: 'tags', label: 'Tags', list: true },
           { type: 'string', name: 'threadId', label: 'Thread ID (optional, e.g. notes-from-the-build)' },
 
+          // Fields below are tagged [TYPE] so it's obvious which apply to your
+          // selected post type. Only fill in fields tagged with your type; the
+          // others are ignored by the build.
+
+          // -- Image: shared between photo (required) and essay (optional hero) --
+          { type: 'image', name: 'image', label: '[PHOTO required · ESSAY optional] Image' },
+
           // -- Essay / Link / Audio share Title --
-          { type: 'string', name: 'title', label: 'Title (essay, link, voice memo)' },
+          { type: 'string', name: 'title', label: '[ESSAY · LINK · VOICE MEMO] Title' },
 
           // -- Essay --
-          { type: 'string', name: 'dek', label: 'Dek (essay subtitle)', ui: { component: 'textarea' } },
-          { type: 'image', name: 'heroImage', label: 'Hero image (essay, optional)' },
+          { type: 'string', name: 'dek', label: '[ESSAY] Dek (subtitle)', ui: { component: 'textarea' } },
 
           // -- Quote --
-          { type: 'string', name: 'source', label: 'Source (quote / link)' },
-          { type: 'string', name: 'sourceUrl', label: 'Source URL (quote, optional)' },
+          { type: 'string', name: 'source', label: '[QUOTE · LINK] Source' },
+          { type: 'string', name: 'sourceUrl', label: '[QUOTE] Source URL (optional)' },
 
           // -- Link --
-          { type: 'string', name: 'url', label: 'URL (link)' },
-          { type: 'image', name: 'ogImage', label: 'OG image (link, optional)' },
+          { type: 'string', name: 'url', label: '[LINK] URL' },
+          { type: 'image', name: 'ogImage', label: '[LINK] OG image (optional)' },
 
           // -- Photo --
-          { type: 'image', name: 'image', label: 'Image (photo)' },
-          { type: 'string', name: 'caption', label: 'Caption (photo)', ui: { component: 'textarea' } },
+          { type: 'string', name: 'caption', label: '[PHOTO] Caption', ui: { component: 'textarea' } },
 
           // -- Audio (uploads via Tina media picker; on iPhone this opens the
           // native voice recorder via the input's capture attribute) --
-          { type: 'image', name: 'audioFile', label: 'Voice memo (record on phone, or upload mp3/m4a)' },
-          { type: 'string', name: 'duration', label: 'Duration mm:ss (voice memo)' },
-          { type: 'string', name: 'context', label: 'Context line (voice memo, e.g. "in the car")' },
-          { type: 'string', name: 'transcript', label: 'Transcript (voice memo)', ui: { component: 'textarea' } },
+          { type: 'image', name: 'audioFile', label: '[VOICE MEMO] Audio file (record on phone or upload mp3/m4a)' },
+          { type: 'string', name: 'duration', label: '[VOICE MEMO] Duration mm:ss' },
+          { type: 'string', name: 'context', label: '[VOICE MEMO] Context line (e.g. "in the car")' },
+          { type: 'string', name: 'transcript', label: '[VOICE MEMO] Transcript', ui: { component: 'textarea' } },
 
           // -- Body (markdown body of the post) --
           { type: 'rich-text', name: 'body', label: 'Body', isBody: true },
