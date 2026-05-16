@@ -26,7 +26,16 @@ if (post.data.type !== 'photo') throw new Error('PhotoCard requires photo post')
   )}
 </article>
 <style>
-  .img { width: 100%; height: auto; border-radius: var(--r-lg); box-shadow: var(--shadow-card); margin-bottom: 14px; }
+  .img {
+    display: block;
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    margin: 0 auto 14px;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+  }
   .cap { font-size: 15px; opacity: 0.9; margin: 0; }
   .cap-link { color: var(--fg); }
   .cap-link:hover .cap { color: var(--accent-text); }
