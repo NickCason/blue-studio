@@ -1,6 +1,7 @@
 ---
 slug: ''
 type: note
+publishedAt: 2026-06-16T22:16:00.000Z
 draft: false
 tags:
   - creative process
